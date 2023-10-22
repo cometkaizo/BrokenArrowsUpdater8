@@ -1,0 +1,224 @@
+package me.cometkaizo.screen;
+
+import me.cometkaizo.brokenarrows.BrokenArrowsApp;
+import me.cometkaizo.util.ShapeUtils;
+
+import java.awt.*;
+import java.awt.geom.Area;
+import java.awt.geom.RectangularShape;
+import java.util.function.Consumer;
+
+public class ButtonGui extends Gui {
+    protected GuiText text;
+    protected GuiText hoverText;
+    protected GuiText pressText;
+    protected Consumer<? super ButtonGui> action;
+    protected RectangularShape shape;
+    protected GuiBackground background, hoverBackground, pressBackground;
+    protected Border border, hoverBorder, pressBorder;
+    protected boolean hovered, pressed;
+
+    public ButtonGui(double x, double y,
+                     double width, double height,
+                     GuiText text, GuiText hoverText, GuiText pressText,
+                     RectangularShape shape,
+                     GuiBackground background, GuiBackground hoverBackground, GuiBackground pressBackground,
+                     Border border, Border hoverBorder, Border pressBorder,
+                     Consumer<? super ButtonGui> action,
+                     BrokenArrowsApp app) {
+        this(Coordinate.relative(x, y), Coordinate.relative(width, height), text, hoverText, pressText, shape, background, hoverBackground, pressBackground, border, hoverBorder, pressBorder, action, app);
+    }
+    public ButtonGui(int x, int y,
+                     int width, int height,
+                     GuiText text, GuiText hoverText, GuiText pressText,
+                     RectangularShape shape,
+                     GuiBackground background, GuiBackground hoverBackground, GuiBackground pressBackground,
+                     Border border, Border hoverBorder, Border pressBorder,
+                     Consumer<? super ButtonGui> action,
+                     BrokenArrowsApp app) {
+        this(Coordinate.abs(x, y), Coordinate.abs(width, height), text, hoverText, pressText, shape, background, hoverBackground, pressBackground, border, hoverBorder, pressBorder, action, app);
+    }
+    public ButtonGui(Coordinate position, Coordinate size,
+                     GuiText text, GuiText hoverText, GuiText pressText,
+                     RectangularShape shape,
+                     GuiBackground background, GuiBackground hoverBackground, GuiBackground pressBackground,
+                     Border border, Border hoverBorder, Border pressBorder,
+                     Consumer<? super ButtonGui> action,
+                     BrokenArrowsApp app) {
+        super(position, size, app);
+        this.text = text;
+        this.hoverText = hoverText;
+        this.pressText = pressText;
+        this.shape = shape;
+        this.background = background;
+        this.hoverBackground = hoverBackground;
+        this.pressBackground = pressBackground;
+        this.border = border;
+        this.hoverBorder = hoverBorder;
+        this.pressBorder = pressBorder;
+        this.action = action;
+    }
+
+    @Override
+    public void mouseReleased(int button, double x, double y) {
+        super.mouseReleased(button, x, y);
+        pressed = false;
+        if (contains(x, y)) onPressed();
+    }
+
+    @Override
+    public void mousePressed(int button, double x, double y) {
+        super.mousePressed(button, x, y);
+        if (contains(x, y)) pressed = true;
+    }
+
+    @Override
+    public void mouseMoved(double x, double y) {
+        super.mouseMoved(x, y);
+        hovered = contains(x, y);
+        if (!hovered) pressed = false;
+    }
+
+    @Override
+    public void mouseDragged(double x, double y) {
+        super.mouseDragged(x, y);
+        pressed = hovered = contains(x, y);
+    }
+
+    public void onPressed() {
+        action.accept(this);
+    }
+
+    @Override
+    public void render(FullResRenderer r, Graphics2D g) {
+        super.render(r, g);
+        renderBorder(r, g);
+        renderBackground(r, g);
+        renderText(r, g);
+    }
+
+    public void renderBorder(FullResRenderer r, Graphics2D g) {
+        Border currentBorder;
+
+        if (pressed) currentBorder = pressBorder;
+        else if (hovered) currentBorder = hoverBorder;
+        else currentBorder = border;
+
+        if (currentBorder != null) currentBorder.render(r, g, shape, x(), y(), width(), height(), app);
+    }
+
+    public void renderBackground(FullResRenderer r, Graphics2D g) {
+        if (pressed) renderPressBackground(r, g);
+        else if (hovered) renderHoverBackground(r, g);
+        else renderRegularBackground(r, g);
+    }
+
+    private void renderRegularBackground(FullResRenderer r, Graphics2D g) {
+        boolean subtractBorder = border != null && border.mode != BorderMode.OUTER;
+        int borderWidth = subtractBorder ? border.getWidth(app) : -1;
+        int actualX = subtractBorder ? r.toScreenX(x()) + borderWidth : r.toScreenX(x());
+        int actualY = subtractBorder ? r.toScreenY(y()) + borderWidth : r.toScreenY(y());
+        int actualWidth = subtractBorder ? r.toScreenWidth(width()) - borderWidth * 2 : r.toScreenWidth(width());
+        int actualHeight = subtractBorder ? r.toScreenHeight(height()) - borderWidth * 2 : r.toScreenHeight(height());
+        background.render(r, g, shape, actualX, actualY, actualWidth, actualHeight);
+    }
+
+    private void renderHoverBackground(FullResRenderer r, Graphics2D g) {
+        boolean subtractBorder = hoverBorder != null && hoverBorder.mode != BorderMode.OUTER;
+        int hoverBorderWidth = subtractBorder ? hoverBorder.getWidth(app) : -1;
+        int actualX = subtractBorder ? r.toScreenX(x()) + hoverBorderWidth : r.toScreenX(x());
+        int actualY = subtractBorder ? r.toScreenY(y()) + hoverBorderWidth : r.toScreenY(y());
+        int actualWidth = subtractBorder ? r.toScreenWidth(width()) - hoverBorderWidth * 2 : r.toScreenWidth(width());
+        int actualHeight = subtractBorder ? r.toScreenHeight(height()) - hoverBorderWidth * 2 : r.toScreenHeight(height());
+        hoverBackground.render(r, g, shape, actualX, actualY, actualWidth, actualHeight);
+    }
+
+    private void renderPressBackground(FullResRenderer r, Graphics2D g) {
+        boolean subtractBorder = pressBorder != null && pressBorder.mode != BorderMode.OUTER;
+        int hoverBorderWidth = subtractBorder ? pressBorder.getWidth(app) : -1;
+        int actualX = subtractBorder ? r.toScreenX(x()) + hoverBorderWidth : r.toScreenX(x());
+        int actualY = subtractBorder ? r.toScreenY(y()) + hoverBorderWidth : r.toScreenY(y());
+        int actualWidth = subtractBorder ? r.toScreenWidth(width()) - hoverBorderWidth * 2 : r.toScreenWidth(width());
+        int actualHeight = subtractBorder ? r.toScreenHeight(height()) - hoverBorderWidth * 2 : r.toScreenHeight(height());
+        pressBackground.render(r, g, shape, actualX, actualY, actualWidth, actualHeight);
+    }
+
+    public void renderText(FullResRenderer r, Graphics2D g) {
+        double centerX = x() + width() / 2;
+        double centerY = y() + height() / 2;
+        if (pressed) pressText.render(r, g, centerX, centerY, -0.5, 0.25);
+        else if (hovered) hoverText.render(r, g, centerX, centerY, -0.5, 0.25);
+        else text.render(r, g, centerX, centerY, -0.5, 0.25);
+    }
+
+    public GuiBackground getCurrentBackground() {
+        return pressed ? pressBackground : hovered ? hoverBackground : background;
+    }
+
+    public static class Border {
+        protected Length width;
+        protected Color color;
+        protected BorderMode mode;
+
+        public Border(Length width, Color color, BorderMode mode) {
+            this.width = width;
+            this.color = color;
+            this.mode = mode;
+        }
+
+        public void render(FullResRenderer r, Graphics2D g, RectangularShape shape, double x, double y, double width, double height, BrokenArrowsApp app) {
+            if (this.width == null || getWidth(app) == 0) return;
+            g.setColor(color);
+            Area area;
+            r.setShape(shape, x, y, width, height);
+            if (mode == BorderMode.OUTER) {
+                area = ShapeUtils.grow(shape, getWidth(app));
+            } else area = new Area(shape);
+            subtractBackground(r, area, shape, x, y, width, height, app);
+            g.fill(area);
+        }
+
+        protected int getWidth(BrokenArrowsApp app) {
+            return width.abs(Math.max(app.panel().getWidth(), app.panel().getHeight()), Math.max(app.settings().defaultWidth, app.settings().defaultHeight));
+        }
+
+        public void subtractBackground(FullResRenderer r, Area area, RectangularShape shape, double x, double y, double width, double height, BrokenArrowsApp app) {
+            int borderWidth = getWidth(app);
+            int actualX = mode == BorderMode.OUTER ? r.toScreenX(x) : r.toScreenX(x) + borderWidth;
+            int actualY = mode == BorderMode.OUTER ? r.toScreenY(y) : r.toScreenY(y) + borderWidth;
+            int actualWidth = mode == BorderMode.OUTER ? r.toScreenWidth(width) : r.toScreenWidth(width) - borderWidth * 2;
+            int actualHeight = mode == BorderMode.OUTER ? r.toScreenHeight(height) : r.toScreenHeight(height) - borderWidth * 2;
+
+            RectangularShape backgroundShape = (RectangularShape) shape.clone();
+            r.setShape(backgroundShape, actualX, actualY, actualWidth, actualHeight);
+            area.subtract(new Area(backgroundShape));
+        }
+
+
+        public Length width() {
+            return width;
+        }
+        public Color color() {
+            return color;
+        }
+        public BorderMode mode() {
+            return mode;
+        }
+
+        public void setWidth(Length width) {
+            this.width = width;
+        }
+
+        public void setColor(Color color) {
+            this.color = color;
+        }
+
+        public void setMode(BorderMode mode) {
+            this.mode = mode;
+        }
+    }
+
+    public enum BorderMode {
+        OUTER, INNER
+    }
+}

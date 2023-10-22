@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="brokenarrowsupdater:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/brokenarrowsupdater_jar</output-path>
+    <root id="archive" name="brokenarrowsupdater.jar">
+      <element id="module-output" name="brokenarrowsupdater" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/RalleYTN/SimpleJSON/2.1.1/SimpleJSON-2.1.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
