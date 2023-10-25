@@ -23,8 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -52,6 +52,9 @@ public class BrokenArrowsApp extends App {
     protected ExecutorService executor = Executors.newFixedThreadPool(2);
     protected ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+    protected final List<ModUpdater> modUpdaters = Collections.synchronizedList(new ArrayList<>(1));
+    protected final List<ForgeUpdater> forgeUpdaters = Collections.synchronizedList(new ArrayList<>(1));
+
     protected BrokenArrowsApp() {
         super(null);
         settings = new BrokenArrowsSettings(this);
@@ -62,6 +65,7 @@ public class BrokenArrowsApp extends App {
     @Override
     public void tick() {
         super.tick();
+        if (panel != null) panel.forceTick();
         if (frame != null && frame.isFocused()) {
             panel.tick();
             frame.repaint();
@@ -79,11 +83,20 @@ public class BrokenArrowsApp extends App {
         if (!checkForMinecraftFolder()) return;
 
         ForgeUpdater forgeUpdater = new ForgeUpdater(this);
-        preTask.accept(forgeUpdater);
-        addTask(() -> {
-            forgeUpdater.update(force);
-            postTask.accept(forgeUpdater);
-        }, ExceptionManager.PRINT);
+        forgeUpdaters.add(forgeUpdater);
+        try {
+            preTask.accept(forgeUpdater);
+            addTask(() -> {
+                try {
+                    forgeUpdater.update(force);
+                    postTask.accept(forgeUpdater);
+                } finally {
+                    forgeUpdaters.remove(forgeUpdater);
+                }
+            }, ExceptionManager.PRINT);
+        } catch (Exception e) {
+            forgeUpdaters.remove(forgeUpdater);
+        }
     }
 
     public void showForgeUpdateFeedback(ForgeUpdater forgeUpdater) {
@@ -102,16 +115,26 @@ public class BrokenArrowsApp extends App {
         if (!checkForMinecraftFolder()) return;
 
         ModUpdater modUpdater = new ModUpdater(this);
-        preTask.accept(modUpdater);
-        addTask(() -> {
-            modUpdater.update(force);
-            postTask.accept(modUpdater);
-        }, ExceptionManager.PRINT);
+        modUpdaters.add(modUpdater);
+        try {
+            preTask.accept(modUpdater);
+            addTask(() -> {
+                try {
+                    modUpdater.update(force);
+                    postTask.accept(modUpdater);
+                } finally {
+                    modUpdaters.remove(modUpdater);
+                }
+            }, ExceptionManager.PRINT);
+        } catch (Exception e) {
+            modUpdaters.remove(modUpdater);
+        }
     }
 
     public void showModUpdateFeedback(ModUpdater modUpdater) {
         var problems = modUpdater.getProblems();
         var downloadedMods = modUpdater.getDownloadedMods();
+
         if (downloadedMods.isEmpty() && problems.isEmpty()) panel.addScreen(getModUpToDateScreen());
         else if (!downloadedMods.isEmpty()) panel.addScreen(getModSuccessScreen(problems, downloadedMods));
         else panel.addScreen(getModErrorScreen(problems));
@@ -166,8 +189,13 @@ public class BrokenArrowsApp extends App {
         tryUpdateThis();
 
         rescheduleAutoUpdate();
+        tryAutoUpdateOnStart();
+    }
+
+    private void tryAutoUpdateOnStart() {
         long minutes = ChronoUnit.MINUTES.between(LocalDateTime.now(), info.lastAutoUpdateTime);
-        if (minutes >= settings().autoUpdateInterval) updateAll();
+        boolean shouldAutoUpdate = minutes >= settings().autoUpdateInterval;
+        if (settings().updateOnStart || shouldAutoUpdate) updateAll();
     }
 
     private void tryUpdateThis() {
@@ -306,6 +334,14 @@ public class BrokenArrowsApp extends App {
         return executor;
     }
 
+    public boolean isUpdatingMods() {
+        return !modUpdaters.isEmpty();
+    }
+
+    public boolean isUpdatingForge() {
+        return !forgeUpdaters.isEmpty();
+    }
+
     public boolean checkForMinecraftFolder() {
         if (minecraftFolder() == null) {
             panel.addScreen(new ActionPromptScreen("No Minecraft directory found", "Please re-select your minecraft directory.",
@@ -376,13 +412,13 @@ public class BrokenArrowsApp extends App {
 
     public void updateAll() {
         info.lastAutoUpdateTime = LocalDateTime.now();
-        updateMods(__ -> {}, updater -> {
+        if (!isUpdatingMods()) updateMods(__ -> {}, updater -> {
             if (!updater.getDownloadedMods().isEmpty() || !updater.getProblems().isEmpty()) {
                 showModUpdateFeedback(updater);
                 showWindow();
             }
         });
-        updateForge(__ -> {}, updater -> {
+        if (!isUpdatingForge()) updateForge(__ -> {}, updater -> {
             if (!updater.isAlreadyUpToDate()) {
                 showForgeUpdateFeedback(updater);
                 showWindow();

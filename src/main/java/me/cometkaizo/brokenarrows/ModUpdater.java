@@ -184,4 +184,17 @@ public class ModUpdater extends Updater {
             return Objects.equals(fullName(), file.getName());
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ModUpdater updater = (ModUpdater) o;
+        return Objects.equals(downloadedMods, updater.downloadedMods) && Objects.equals(listeners, updater.listeners);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(downloadedMods, listeners);
+    }
 }

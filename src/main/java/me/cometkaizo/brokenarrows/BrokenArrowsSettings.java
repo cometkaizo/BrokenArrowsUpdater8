@@ -20,6 +20,7 @@ public class BrokenArrowsSettings extends AppSettings implements DataSerializabl
     public File minecraftFolder;
     public final TimeUnit autoUpdateIntervalUnit = TimeUnit.MINUTES;
     public int defaultAutoUpdateInterval = 60, autoUpdateInterval = defaultAutoUpdateInterval; // in minutes
+    public boolean updateOnStart = false;
 
     public BrokenArrowsSettings(BrokenArrowsApp app) {
         this.app = app;
@@ -37,6 +38,7 @@ public class BrokenArrowsSettings extends AppSettings implements DataSerializabl
         CompoundData data = new CompoundData();
         if (minecraftFolder != null) data.putString("minecraftFolder", minecraftFolder.getAbsolutePath());
         data.putInt("autoUpdateInterval", autoUpdateInterval);
+        data.putBoolean("updateOnStart", updateOnStart);
         return data;
     }
 
@@ -44,6 +46,7 @@ public class BrokenArrowsSettings extends AppSettings implements DataSerializabl
     public void read(CompoundData data) {
         setMinecraftFolder(data.getString("minecraftFolder").map(File::new).orElse(null));
         autoUpdateInterval = data.getInt("autoUpdateInterval").orElse(defaultAutoUpdateInterval);
+        updateOnStart = data.getBoolean("updateOnStart").orElse(false);
     }
 
     public void write(Path dataFolder) throws IOException {

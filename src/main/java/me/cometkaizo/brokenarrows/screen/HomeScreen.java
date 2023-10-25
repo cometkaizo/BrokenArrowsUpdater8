@@ -39,7 +39,11 @@ public class HomeScreen extends ScreenGui {
         protected ColorSource buttonTextColor = new ColorSource(app, Palette::textLight);
         protected GuiText updateModsButtonText = new GuiText("Update Mods", buttonFont, buttonTextColor),
                 updateForgeButtonText = new GuiText("Update Forge", buttonFont, buttonTextColor),
+                updatingText = new GuiText("Updating...", buttonFont, buttonTextColor),
                 settingsButtonText = new GuiText("Settings", buttonFont, buttonTextColor);
+
+        protected boolean prevIsUpdatingMods = false, prevIsUpdatingForge = false;
+
         public Panel(BrokenArrowsApp app) {
             super(0, 0, 1D, 1D, new GuiBackground(app, Palette::dark), app);
         }
@@ -65,10 +69,25 @@ public class HomeScreen extends ScreenGui {
             addNestedComponent(menu);
         }
 
+        @Override
+        public void forceTick() {
+            super.forceTick();
+            if (prevIsUpdatingMods != app.isUpdatingMods() || prevIsUpdatingForge != app.isUpdatingForge()) updateState();
+            prevIsUpdatingMods = app.isUpdatingMods();
+            prevIsUpdatingForge = app.isUpdatingForge();
+        }
+
+        private void updateState() {
+            updateModsButton.setAllText(app.isUpdatingMods() ? updatingText : updateModsButtonText);
+            updateForgeButton.setAllText(app.isUpdatingForge() ? updatingText : updateForgeButtonText);
+        }
+
         private void updateMods() {
+            if (app.isUpdatingMods()) return;
             app.updateMods(updater -> app.panel().addScreen(new ModProgressScreen(updater, app)), app::showModUpdateFeedback);
         }
         private void updateForge() {
+            if (app.isUpdatingForge()) return;
             app.updateForge(updater -> app.panel().addScreen(new ForgeProgressScreen(updater, app)), app::showForgeUpdateFeedback);
         }
 

@@ -38,6 +38,10 @@ public abstract class Gui {
 
     }
 
+    public void forceTick() {
+
+    }
+
     public void update() {
 
     }

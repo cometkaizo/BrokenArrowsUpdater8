@@ -17,6 +17,9 @@ public class SettingsScreen extends ScreenGui {
     public static final int MARGIN = 50, MARGIN_SMALL = 20;
     public static final Length MARGIN_LEN = Length.abs(MARGIN), MARGIN_SMALL_LEN = Length.abs(MARGIN_SMALL);
     protected static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#########");
+    static {
+        DECIMAL_FORMAT.setMaximumFractionDigits(2);
+    }
     protected final String title;
     protected Panel panel;
 
@@ -124,6 +127,7 @@ public class SettingsScreen extends ScreenGui {
                 super.init();
                 add(new AutoUpdateIntervalSetting(app));
                 add(new MinecraftFolderSetting(app));
+                add(new UpdateOnStartSetting(app));
 
                 settings.get(0).updateY();
                 settings.forEach(this::addNestedComponent);
@@ -275,10 +279,12 @@ public class SettingsScreen extends ScreenGui {
                         return "Auto update every " + interval + " minutes";
                     } else {
                         float hours = interval / 60F;
-                        DECIMAL_FORMAT.setMaximumFractionDigits(2);
-                        String format = DECIMAL_FORMAT.format(Math.abs(hours));
-                        return "Auto update every " + format + " hour" + (hours != 1 ? "s" : "");
+                        return "Auto update every " + format(hours) + " hour" + (hours != 1 ? "s" : "");
                     }
+                }
+
+                private static String format(float hours) {
+                    return DECIMAL_FORMAT.format(Math.abs(hours));
                 }
             }
 
@@ -321,7 +327,58 @@ public class SettingsScreen extends ScreenGui {
 
                 private static String getMessage(BrokenArrowsApp app) {
                     String mcDir = app.minecraftFolder().getAbsolutePath();
-                    return "Update Minecraft at " + mcDir;
+                    return "This app updates mods at " + mcDir;
+                }
+            }
+
+            public class UpdateOnStartSetting extends SettingPanel {
+                public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 18);
+                protected Length toggleButtonWidth = Length.abs(100), toggleButtonHeight = Length.abs(40);
+                protected GuiText toggleButtonTurnOnText = new GuiText("Turn On", FONT, new ColorSource(app, Palette::textMedium)),
+                        toggleButtonTurnOffText = new GuiText("Turn Off", FONT, new ColorSource(app, Palette::textMedium));
+                protected GuiBackground toggleButtonBackground = new GuiBackground(app, Palette::medium);
+                protected ButtonGui.Border toggleButtonBorder = null;
+                protected ButtonGui toggleButton;
+
+                public UpdateOnStartSetting(BrokenArrowsApp app) {
+                    super(getMessage(app), app);
+                }
+
+                @Override
+                public void init() {
+                    super.init();
+                    toggleButton = new ButtonGui(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - toggleButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)),
+                            Coordinate.of(toggleButtonWidth, toggleButtonHeight),
+                            null, null, null,
+                            new Rectangle(),
+                            toggleButtonBackground, toggleButtonBackground, toggleButtonBackground,
+                            toggleButtonBorder, toggleButtonBorder, toggleButtonBorder,
+                            b -> toggle(), app);
+                    updateState();
+
+                    addNestedComponent(toggleButton);
+                }
+
+                private void updateState() {
+                    var text = app.settings().updateOnStart ? toggleButtonTurnOffText : toggleButtonTurnOnText;
+                    toggleButton.text = toggleButton.hoverText = toggleButton.pressText = text;
+
+                    setMessage(getMessage(app));
+                }
+
+                private void toggle() {
+                    app.settings().updateOnStart = !app.settings().updateOnStart;
+                    updateState();
+                }
+
+                @Override
+                protected void updateHeight(int textHeight, int lineHeight) {
+                    size.setY(app.resolveYAbs(toggleButtonHeight) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                }
+
+                private static String getMessage(BrokenArrowsApp app) {
+                    String state = app.settings().updateOnStart ? "Yes" : "No";
+                    return "Automatically update upon starting the program? " + state;
                 }
             }
         }

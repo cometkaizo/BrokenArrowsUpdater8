@@ -8,6 +8,7 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -206,4 +207,16 @@ public class ForgeUpdater extends Updater {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ForgeUpdater that = (ForgeUpdater) o;
+        return success == that.success && alreadyUpToDate == that.alreadyUpToDate && Objects.equals(jarExecutor, that.jarExecutor) && Objects.equals(listeners, that.listeners);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jarExecutor, listeners, success, alreadyUpToDate);
+    }
 }

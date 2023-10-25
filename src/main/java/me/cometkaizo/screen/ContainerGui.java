@@ -70,6 +70,11 @@ public abstract class ContainerGui extends Gui {
         super.tick();
         for (var c : components) c.tick();
     }
+    @Override
+    public void forceTick() {
+        super.forceTick();
+        for (var c : components) c.forceTick();
+    }
 
     @Override
     public void update() {

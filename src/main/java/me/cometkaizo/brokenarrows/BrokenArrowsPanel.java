@@ -76,6 +76,9 @@ public class BrokenArrowsPanel extends JPanel {
     public void tick() {
         forEachScreen(ScreenGui::tick);
     }
+    public void forceTick() {
+        forEachScreen(ScreenGui::forceTick);
+    }
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
     public void forEachScreen(Consumer<ScreenGui> task) {

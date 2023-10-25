@@ -9,13 +9,13 @@ import java.awt.geom.RectangularShape;
 import java.util.function.Consumer;
 
 public class ButtonGui extends Gui {
-    protected GuiText text;
-    protected GuiText hoverText;
-    protected GuiText pressText;
-    protected Consumer<? super ButtonGui> action;
-    protected RectangularShape shape;
-    protected GuiBackground background, hoverBackground, pressBackground;
-    protected Border border, hoverBorder, pressBorder;
+    public GuiText text;
+    public GuiText hoverText;
+    public GuiText pressText;
+    public Consumer<? super ButtonGui> action;
+    public RectangularShape shape;
+    public GuiBackground background, hoverBackground, pressBackground;
+    public Border border, hoverBorder, pressBorder;
     protected boolean hovered, pressed;
 
     public ButtonGui(double x, double y,
@@ -153,6 +153,10 @@ public class ButtonGui extends Gui {
 
     public GuiBackground getCurrentBackground() {
         return pressed ? pressBackground : hovered ? hoverBackground : background;
+    }
+
+    public void setAllText(GuiText text) {
+        this.text = this.hoverText = this.pressText = text;
     }
 
     public static class Border {
