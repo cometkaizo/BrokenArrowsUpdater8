@@ -3,10 +3,16 @@ package me.cometkaizo.screen.color;
 import java.awt.*;
 
 public class AbstractPalette implements Palette {
-    public Color dark, medium, light;
+    public Color darker, dark, medium, light, lighter;
     public Color textDark, textMedium, textLight;
     public Color accent1Dark, accent1Medium, accent1Light;
     public Color accent2Dark, accent2Medium, accent2Light;
+
+    @Override
+    public Color darker() {
+        return darker;
+    }
+
     @Override
     public Color dark() {
         return dark;
@@ -20,6 +26,11 @@ public class AbstractPalette implements Palette {
     @Override
     public Color light() {
         return light;
+    }
+
+    @Override
+    public Color lighter() {
+        return lighter;
     }
 
     @Override

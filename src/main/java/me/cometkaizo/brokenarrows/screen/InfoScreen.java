@@ -41,9 +41,6 @@ public class InfoScreen extends ScreenGui {
         protected SideBar sideBar;
         protected MessagePanel messagePanel;
         protected ButtonGui closeButton;
-        protected GuiBackground closeBackground = new GuiBackground(new ColorSource(app, Palette::light));
-        protected GuiText closeButtonText = new GuiText("<", new Font(Font.DIALOG, Font.BOLD, 24), new ColorSource(app, Palette::textMedium));
-        protected ButtonGui.Border closeButtonBorder = null;
         public Panel(BrokenArrowsApp app) {
             super(0, 0, 1D, 1D, new GuiBackground(app, Palette::dark), app);
         }
@@ -51,14 +48,13 @@ public class InfoScreen extends ScreenGui {
         @Override
         public void init() {
             super.init();
-            closeButton = new ButtonGui(
-                    Coordinate.abs(MARGIN, MARGIN),
-                    Coordinate.abs(80, 80),
-                    closeButtonText, closeButtonText, closeButtonText,
-                    new Rectangle(),
-                    closeBackground, closeBackground, closeBackground,
-                    closeButtonBorder, closeButtonBorder, closeButtonBorder,
-                    b -> close(), app);
+            closeButton = app.buttonStyle.light()
+                    .setAllTextSize(24)
+                    .setPos(Coordinate.abs(MARGIN, MARGIN))
+                    .setSize(Coordinate.abs(80, 80))
+                    .setAllText("<")
+                    .setAction(b -> close())
+                    .build();
 
             titleBar = new TitleBar(app);
             sideBar = new SideBar(app);

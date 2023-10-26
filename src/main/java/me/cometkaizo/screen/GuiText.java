@@ -5,14 +5,14 @@ import me.cometkaizo.screen.color.ColorSource;
 import java.awt.*;
 
 public class GuiText {
-    protected String text;
-    protected Font defaultFont;
-    protected Font font;
-    protected ColorSource color;
-    protected double deltaX;
-    protected double deltaY;
-    protected double deltaXFactor;
-    protected double deltaYFactor;
+    public String text;
+    public Font defaultFont;
+    public Font font;
+    public ColorSource color;
+    public double deltaX;
+    public double deltaY;
+    public double deltaXFactor;
+    public double deltaYFactor;
 
     public GuiText(String text, Font font, ColorSource color, double deltaX, double deltaY, double deltaXFactor, double deltaYFactor) {
         this.text = text;
@@ -84,5 +84,13 @@ public class GuiText {
 
     public void setColor(ColorSource color) {
         this.color = color;
+    }
+
+    public void setSize(int size) {
+        font = new Font(font.getName(), font.getStyle(), size);
+    }
+
+    public GuiText copy() {
+        return new GuiText(text, font, color, deltaX, deltaY, deltaXFactor, deltaYFactor);
     }
 }

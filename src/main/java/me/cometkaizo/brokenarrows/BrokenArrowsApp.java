@@ -42,7 +42,7 @@ public class BrokenArrowsApp extends App {
     protected Properties properties;
     protected String version, artifactId;
     protected BrokenArrowsInfo info;
-    protected Palette palette;
+
     protected Image icon;
     protected JFrame frame;
     protected BrokenArrowsPanel panel;
@@ -52,6 +52,10 @@ public class BrokenArrowsApp extends App {
     protected ExecutorService executor = Executors.newFixedThreadPool(2);
     protected ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
+
+    protected Palette palette;
+    public ButtonStyle buttonStyle;
+
     protected final List<ModUpdater> modUpdaters = Collections.synchronizedList(new ArrayList<>(1));
     protected final List<ForgeUpdater> forgeUpdaters = Collections.synchronizedList(new ArrayList<>(1));
 
@@ -60,6 +64,7 @@ public class BrokenArrowsApp extends App {
         settings = new BrokenArrowsSettings(this);
         info = new BrokenArrowsInfo();
         properties = new Properties();
+        buttonStyle = new ButtonStyle(this);
     }
 
     @Override
@@ -276,6 +281,7 @@ public class BrokenArrowsApp extends App {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                save();
                 hideWindow();
             }
         });

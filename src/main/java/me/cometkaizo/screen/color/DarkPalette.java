@@ -4,9 +4,11 @@ import java.awt.*;
 
 public class DarkPalette extends AbstractPalette {
     public DarkPalette() {
+        darker = new Color(12, 12, 12);
         dark = new Color(25, 25, 25);
         medium = new Color(50, 50, 50);
         light = new Color(65, 65, 65);
+        lighter = new Color(80, 80, 80);
         textDark = new Color(100, 100, 100);
         textMedium = new Color(155, 155, 155);
         textLight = new Color(230, 230, 230);

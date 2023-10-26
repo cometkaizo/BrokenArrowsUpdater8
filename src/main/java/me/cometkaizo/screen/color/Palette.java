@@ -4,9 +4,11 @@ import java.awt.*;
 
 public interface Palette {
 
+    Color darker();
     Color dark();
     Color medium();
     Color light();
+    Color lighter();
     Color textDark();
     Color textMedium();
     Color textLight();

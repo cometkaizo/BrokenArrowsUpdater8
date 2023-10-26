@@ -211,6 +211,14 @@ public abstract class Gui {
         return y() + height();
     }
 
+    public Coordinate position() {
+        return position;
+    }
+
+    public Coordinate size() {
+        return size;
+    }
+
     public boolean contains(double x, double y) {
         return x >= left() && x <= right() && y >= top() && y <= bottom();
     }

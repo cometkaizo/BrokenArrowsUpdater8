@@ -54,9 +54,6 @@ public class SettingsScreen extends ScreenGui {
         protected SideBar sideBar;
         protected AllSettingsPanel allSettingsPanel;
         protected ButtonGui closeButton;
-        protected GuiBackground closeBackground = new GuiBackground(new ColorSource(app, Palette::light));
-        protected GuiText closeButtonText = new GuiText("<", new Font(Font.DIALOG, Font.BOLD, 24), new ColorSource(app, Palette::textMedium));
-        protected ButtonGui.Border closeButtonBorder = null;
         public Panel(BrokenArrowsApp app) {
             super(0, 0, 1D, 1D, new GuiBackground(app, Palette::dark), app);
         }
@@ -64,14 +61,13 @@ public class SettingsScreen extends ScreenGui {
         @Override
         public void init() {
             super.init();
-            closeButton = new ButtonGui(
-                    Coordinate.abs(MARGIN, MARGIN),
-                    Coordinate.abs(80, 80),
-                    closeButtonText, closeButtonText, closeButtonText,
-                    new Rectangle(),
-                    closeBackground, closeBackground, closeBackground,
-                    closeButtonBorder, closeButtonBorder, closeButtonBorder,
-                    b -> close(), app);
+            closeButton = app.buttonStyle.light()
+                    .setAllTextSize(24)
+                    .setPos(Coordinate.abs(MARGIN, MARGIN))
+                    .setSize(Coordinate.abs(80, 80))
+                    .setAllText("<")
+                    .setAction(b -> close())
+                    .build();
 
             titleBar = new TitleBar(app);
             sideBar = new SideBar(app);
@@ -220,11 +216,6 @@ public class SettingsScreen extends ScreenGui {
             
             public class AutoUpdateIntervalSetting extends SettingPanel {
                 public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 18);
-                protected Length changeIntervalButtonWidth = Length.abs(40), changeIntervalButtonHeight = Length.abs(40);
-                protected GuiText increaseIntervalButtonText = new GuiText("+", FONT, new ColorSource(app, Palette::textMedium)),
-                        decreaseIntervalButtonText = new GuiText("-", FONT, new ColorSource(app, Palette::textMedium));
-                protected GuiBackground changeIntervalButtonBackground = new GuiBackground(app, Palette::medium);
-                protected ButtonGui.Border changeIntervalButtonBorder = null;
                 protected ButtonGui increaseIntervalButton, decreaseIntervalButton;
 
                 protected static final List<Integer> INTERVALS = List.of(5, 15, 30, 60, 90, 60 * 3, 60 * 24);
@@ -235,20 +226,20 @@ public class SettingsScreen extends ScreenGui {
                 @Override
                 public void init() {
                     super.init();
-                    increaseIntervalButton = new ButtonGui(Coordinate.abs(Length.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - increaseIntervalButton.width()), top() + app.resolveY(MARGIN_SMALL_LEN)),
-                            Coordinate.of(changeIntervalButtonWidth, changeIntervalButtonHeight),
-                            increaseIntervalButtonText, increaseIntervalButtonText, increaseIntervalButtonText,
-                            new Rectangle(),
-                            changeIntervalButtonBackground, changeIntervalButtonBackground, changeIntervalButtonBackground,
-                            changeIntervalButtonBorder, changeIntervalButtonBorder, changeIntervalButtonBorder,
-                            b -> increaseInterval(), app);
-                    decreaseIntervalButton = new ButtonGui(Coordinate.abs(Length.direct(() -> increaseIntervalButton.left() - app.resolveX(MARGIN_SMALL_LEN) - decreaseIntervalButton.width()), top() + app.resolveY(MARGIN_SMALL_LEN)),
-                            Coordinate.of(changeIntervalButtonWidth, changeIntervalButtonHeight),
-                            decreaseIntervalButtonText, decreaseIntervalButtonText, decreaseIntervalButtonText,
-                            new Rectangle(),
-                            changeIntervalButtonBackground, changeIntervalButtonBackground, changeIntervalButtonBackground,
-                            changeIntervalButtonBorder, changeIntervalButtonBorder, changeIntervalButtonBorder,
-                            b -> decreaseInterval(), app);
+                    increaseIntervalButton = app.buttonStyle.medium()
+                            .setAllTextSize(18)
+                            .setPos(Coordinate.abs(Length.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - increaseIntervalButton.width()), top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(40, 40))
+                            .setAllText("+")
+                            .setAction(b -> increaseInterval())
+                            .build();
+                    decreaseIntervalButton = app.buttonStyle.medium()
+                            .setAllTextSize(18)
+                            .setPos(Coordinate.abs(Length.direct(() -> increaseIntervalButton.left() - app.resolveX(MARGIN_SMALL_LEN) - decreaseIntervalButton.width()), top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(40, 40))
+                            .setAllText("-")
+                            .setAction(b -> decreaseInterval())
+                            .build();
 
                     addNestedComponent(increaseIntervalButton);
                     addNestedComponent(decreaseIntervalButton);
@@ -256,7 +247,7 @@ public class SettingsScreen extends ScreenGui {
 
                 @Override
                 protected void updateHeight(int textHeight, int lineHeight) {
-                    size.setY(app.resolveYAbs(changeIntervalButtonHeight) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                    size.setY(app.resolveYAbs(Length.abs(40)) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
                 private void increaseInterval() {
@@ -289,11 +280,6 @@ public class SettingsScreen extends ScreenGui {
             }
 
             public class MinecraftFolderSetting extends SettingPanel {
-                public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 18);
-                protected Length setMCButtonWidth = Length.abs(100), setMCButtonHeight = Length.abs(40);
-                protected GuiText setMCButtonText = new GuiText("Change", FONT, new ColorSource(app, Palette::textMedium));
-                protected GuiBackground setMCButtonBackground = new GuiBackground(app, Palette::medium);
-                protected ButtonGui.Border setMCButtonBorder = null;
                 protected ButtonGui setMCButton;
 
                 public MinecraftFolderSetting(BrokenArrowsApp app) {
@@ -303,13 +289,13 @@ public class SettingsScreen extends ScreenGui {
                 @Override
                 public void init() {
                     super.init();
-                    setMCButton = new ButtonGui(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - setMCButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)),
-                            Coordinate.of(setMCButtonWidth, setMCButtonHeight),
-                            setMCButtonText, setMCButtonText, setMCButtonText,
-                            new Rectangle(),
-                            setMCButtonBackground, setMCButtonBackground, setMCButtonBackground,
-                            setMCButtonBorder, setMCButtonBorder, setMCButtonBorder,
-                            b -> changeMcDir(), app);
+                    setMCButton = app.buttonStyle.medium()
+                            .setAllTextSize(18)
+                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - setMCButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(100, 40))
+                            .setAllText("Change")
+                            .setAction(b -> changeMcDir())
+                            .build();
 
                     addNestedComponent(setMCButton);
                 }
@@ -322,7 +308,7 @@ public class SettingsScreen extends ScreenGui {
 
                 @Override
                 protected void updateHeight(int textHeight, int lineHeight) {
-                    size.setY(app.resolveYAbs(setMCButtonHeight) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                    size.setY(app.resolveYAbs(setMCButton.size().y()) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
                 private static String getMessage(BrokenArrowsApp app) {
@@ -332,12 +318,7 @@ public class SettingsScreen extends ScreenGui {
             }
 
             public class UpdateOnStartSetting extends SettingPanel {
-                public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 18);
-                protected Length toggleButtonWidth = Length.abs(100), toggleButtonHeight = Length.abs(40);
-                protected GuiText toggleButtonTurnOnText = new GuiText("Turn On", FONT, new ColorSource(app, Palette::textMedium)),
-                        toggleButtonTurnOffText = new GuiText("Turn Off", FONT, new ColorSource(app, Palette::textMedium));
-                protected GuiBackground toggleButtonBackground = new GuiBackground(app, Palette::medium);
-                protected ButtonGui.Border toggleButtonBorder = null;
+                protected String toggleButtonTurnOnText = "Turn On", toggleButtonTurnOffText = "Turn Off";
                 protected ButtonGui toggleButton;
 
                 public UpdateOnStartSetting(BrokenArrowsApp app) {
@@ -347,33 +328,32 @@ public class SettingsScreen extends ScreenGui {
                 @Override
                 public void init() {
                     super.init();
-                    toggleButton = new ButtonGui(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - toggleButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)),
-                            Coordinate.of(toggleButtonWidth, toggleButtonHeight),
-                            null, null, null,
-                            new Rectangle(),
-                            toggleButtonBackground, toggleButtonBackground, toggleButtonBackground,
-                            toggleButtonBorder, toggleButtonBorder, toggleButtonBorder,
-                            b -> toggle(), app);
-                    updateState();
+                    toggleButton = app.buttonStyle.medium()
+                            .setAllTextSize(18)
+                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - toggleButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(100, 40))
+                            .setAction(b -> toggle())
+                            .build();
+                    updateText();
 
                     addNestedComponent(toggleButton);
                 }
 
-                private void updateState() {
+                private void updateText() {
                     var text = app.settings().updateOnStart ? toggleButtonTurnOffText : toggleButtonTurnOnText;
-                    toggleButton.text = toggleButton.hoverText = toggleButton.pressText = text;
+                    toggleButton.setAllText(text);
 
                     setMessage(getMessage(app));
                 }
 
                 private void toggle() {
                     app.settings().updateOnStart = !app.settings().updateOnStart;
-                    updateState();
+                    updateText();
                 }
 
                 @Override
                 protected void updateHeight(int textHeight, int lineHeight) {
-                    size.setY(app.resolveYAbs(toggleButtonHeight) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                    size.setY(app.resolveYAbs(toggleButton.size().y()) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
                 private static String getMessage(BrokenArrowsApp app) {

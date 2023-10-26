@@ -4,7 +4,6 @@ import me.cometkaizo.brokenarrows.BrokenArrowsApp;
 import me.cometkaizo.brokenarrows.Screens;
 import me.cometkaizo.launcher.driver.ExceptionManager;
 import me.cometkaizo.screen.*;
-import me.cometkaizo.screen.color.ColorSource;
 import me.cometkaizo.screen.color.Palette;
 import me.cometkaizo.util.DownloadUtils;
 import me.cometkaizo.util.StringUtils;
@@ -34,13 +33,8 @@ public class HomeScreen extends ScreenGui {
         protected NewsPanel newsPanel;
         protected MenuGui menu;
         protected ButtonGui updateModsButton, updateForgeButton, settingsButton;
-        protected GuiBackground buttonBackground = new GuiBackground(new ColorSource(app, Palette::light));
-        protected Font buttonFont = new Font(Font.DIALOG, Font.BOLD, 24);
-        protected ColorSource buttonTextColor = new ColorSource(app, Palette::textLight);
-        protected GuiText updateModsButtonText = new GuiText("Update Mods", buttonFont, buttonTextColor),
-                updateForgeButtonText = new GuiText("Update Forge", buttonFont, buttonTextColor),
-                updatingText = new GuiText("Updating...", buttonFont, buttonTextColor),
-                settingsButtonText = new GuiText("Settings", buttonFont, buttonTextColor);
+        protected String updateModsButtonText = "Update Mods", updateForgeButtonText = "Update Forge",
+                updatingText = "Updating...", settingsButtonText = "Settings";
 
         protected boolean prevIsUpdatingMods = false, prevIsUpdatingForge = false;
 
@@ -56,14 +50,12 @@ public class HomeScreen extends ScreenGui {
             menu = new MenuGui.Builder(Coordinate.abs(MARGIN, MARGIN),
                     Coordinate.abs(Length.direct(() -> 1 - app.resolveX(MARGIN_LEN) * 2), 80),
                     RepeaterGui.Axis.HORIZONTAL, RepeaterGui.SpacingMode.START, MARGIN_SMALL_LEN, MARGIN_SMALL_LEN, app)
-                    .setButtonShape(new Rectangle())
-                    .setButtonSize(Coordinate.abs(240, 80))
-                    .setAllButtonBackgrounds(buttonBackground)
+                    .setButtonBuilder(app.buttonStyle.light().setSize(Coordinate.abs(240, 80)))
                     .build();
 
-            updateModsButton = menu.addButton(new MenuGui.ButtonBuilder().setAllText(updateModsButtonText).setAction(b -> updateMods()));
-            updateForgeButton = menu.addButton(new MenuGui.ButtonBuilder().setAllText(updateForgeButtonText).setAction(b -> updateForge()));
-            settingsButton = menu.addButton(new MenuGui.ButtonBuilder().setAllText(settingsButtonText).setAction(b -> openSettings()));
+            updateModsButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(updateModsButtonText).setAction(b -> updateMods()));
+            updateForgeButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(updateForgeButtonText).setAction(b -> updateForge()));
+            settingsButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(settingsButtonText).setAction(b -> openSettings()));
 
             addNestedComponent(newsPanel);
             addNestedComponent(menu);
@@ -72,12 +64,12 @@ public class HomeScreen extends ScreenGui {
         @Override
         public void forceTick() {
             super.forceTick();
-            if (prevIsUpdatingMods != app.isUpdatingMods() || prevIsUpdatingForge != app.isUpdatingForge()) updateState();
+            if (prevIsUpdatingMods != app.isUpdatingMods() || prevIsUpdatingForge != app.isUpdatingForge()) updateText();
             prevIsUpdatingMods = app.isUpdatingMods();
             prevIsUpdatingForge = app.isUpdatingForge();
         }
 
-        private void updateState() {
+        private void updateText() {
             updateModsButton.setAllText(app.isUpdatingMods() ? updatingText : updateModsButtonText);
             updateForgeButton.setAllText(app.isUpdatingForge() ? updatingText : updateForgeButtonText);
         }
@@ -114,7 +106,7 @@ public class HomeScreen extends ScreenGui {
                 try {
                     news = DownloadUtils.downloadStr(NEWS_DOWNLOAD_LINK.toURL());
                 } catch (UnknownHostException | NoRouteToHostException e) {
-                    news = "Could not connect to '" + NEWS_DOWNLOAD_LINK.getHost() + "'. The website may be down or you may not be connected to the internet";
+                    news = "Could not connect to '" + NEWS_DOWNLOAD_LINK.getHost() + "'. The website may be down or you may not be connected to the internet.";
                 } catch (Exception e) {
                     news = "An Exception occurred\n\n" + StringUtils.getAbbreviatedMessage(e);
                 } return news;
