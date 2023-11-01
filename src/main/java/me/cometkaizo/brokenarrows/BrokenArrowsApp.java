@@ -247,6 +247,7 @@ public class BrokenArrowsApp extends App {
     }
 
     private void initWindow() {
+        settings().name += " " + version;
         frame = new JFrame(settings().name);
         panel = new BrokenArrowsPanel(new Dimension(settings().defaultWidth, settings().defaultHeight));
 

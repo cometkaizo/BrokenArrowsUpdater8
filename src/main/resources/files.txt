@@ -1,2 +1,2 @@
-origins-@1.20.1-1.0.0@.jar@https://www.dropbox.com/scl/fi/jub5q74yosbz4ofjq4moo/origins-1.20.1-1.0.0.jar?rlkey=9d6u0iszoo6frm6uqteudhcn7&dl=1
-brokenarrows-@1.20.1-1.0.0@.jar@https://www.dropbox.com/scl/fi/63fgfpbpwtyvgrqrfxvom/brokenarrows-1.20.1-1.0.0.jar?rlkey=dizpw0zy3w1ccmwqlbs7n3129&dl=1
+origins-@1.20.1-1.0.1@.jar@https://www.dropbox.com/scl/fi/btk7z3qgu5sb2tengjeyv/origins-1.20.1-1.0.1.jar?rlkey=4625j7tisjwj4cbsdefp6qfo8&dl=1
+brokenarrows-@1.20.1-1.0.1@.jar@https://www.dropbox.com/scl/fi/6dpvvw2baql72q90f7g6d/brokenarrows-1.20.1-1.0.1.jar?rlkey=wwubluk2ade89io65ityik8za&dl=1

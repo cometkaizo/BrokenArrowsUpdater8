@@ -34,7 +34,9 @@ public class BrokenArrowsUpdater extends Updater {
         File downloadDest;
 
         fileName = getFileName(info);
-        downloadDest = new File(FileUtils.thisProgramLocation().getParentFile(), fileName);
+        File thisLoc = FileUtils.thisProgramLocation();
+        downloadDest = new File(thisLoc.getParentFile(), fileName);
+        if (downloadDest.equals(thisLoc)) return;
         if (!force && downloadDest.exists()) updatedFile = downloadDest;
         else try (OutputStream output = new FileOutputStream(downloadDest)) {
             downloadSource = new URI(info.downloadURL());
