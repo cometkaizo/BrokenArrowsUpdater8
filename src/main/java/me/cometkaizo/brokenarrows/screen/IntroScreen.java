@@ -19,7 +19,7 @@ public class IntroScreen extends ScreenGui {
     public IntroScreen(BrokenArrowsApp app) {
         super(app);
         title = "Hello there :)";
-        message = "Please select your Minecraft folder";
+        message = "Please select your Minecraft folder (by default .minecraft)";
     }
 
     @Override

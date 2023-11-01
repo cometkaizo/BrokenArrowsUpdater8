@@ -1,6 +1,11 @@
-Origins 1.0.0:
-    - Updated from 1.16.5 to 1.20.2
+Origins 1.0.2 (wip):
+    - Added Fox sweet berry perks to glow berries
+    - Fixed Phantom not phasing at y < 0
 
-BrokenArrows 1.0.0:
-    - New feature every day! (I hope)
-    - Added coconut
+Origins 1.0.1:
+    - Downgraded from 1.20.2 to 1.20.1
+
+BrokenArrows 1.0.1 (wip):
+    - Sweet berries can only be planted while crouching
+    - Glow berries give glowing
+    - 60-minute day cycle
