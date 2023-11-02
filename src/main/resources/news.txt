@@ -1,9 +1,6 @@
-Origins 1.0.2 (wip):
+Origins 1.0.2:
     - Added Fox sweet berry perks to glow berries
     - Fixed Phantom not phasing at y < 0
-
-Origins 1.0.1:
-    - Downgraded from 1.20.2 to 1.20.1
 
 BrokenArrows 1.0.1 (wip):
     - Sweet berries can only be planted while crouching
