@@ -21,7 +21,7 @@
 
     <groupId>me.cometkaizo</groupId>
     <artifactId>brokenarrowsupdater</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.0</version><!--1.2.1-->
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

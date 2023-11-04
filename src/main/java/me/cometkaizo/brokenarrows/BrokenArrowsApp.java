@@ -56,6 +56,8 @@ public class BrokenArrowsApp extends App {
     protected Palette palette;
     public ButtonStyle buttonStyle;
 
+    protected boolean firstTimeOpening;
+
     protected final List<ModUpdater> modUpdaters = Collections.synchronizedList(new ArrayList<>(1));
     protected final List<ForgeUpdater> forgeUpdaters = Collections.synchronizedList(new ArrayList<>(1));
 
@@ -195,6 +197,8 @@ public class BrokenArrowsApp extends App {
 
         rescheduleAutoUpdate();
         tryAutoUpdateOnStart();
+
+        if (firstTimeOpening) settings().updateOnStart = true;
     }
 
     private void tryAutoUpdateOnStart() {
@@ -469,8 +473,10 @@ public class BrokenArrowsApp extends App {
             settings().read(dataFolder.toPath());
             info.read(dataFolder.toPath());
 
-            if (settings().minecraftFolder == null)
+            if (settings().minecraftFolder == null) {
                 panel.removeAndAddScreen(Screens.HOME.get(), Screens.INTRO.get());
+                firstTimeOpening = true;
+            }
         } catch (Exception e) {
             if (settings().minecraftFolder == null)
                 panel.removeAndAddScreen(Screens.HOME.get(), Screens.INTRO.get());

@@ -267,10 +267,10 @@ public class SettingsScreen extends ScreenGui {
                 private static String getMessage(BrokenArrowsApp app) {
                     int interval = app.settings().autoUpdateInterval;
                     if (interval < 60) {
-                        return "Automatically update every " + interval + " minutes";
+                        return "Automatically update every " + interval + " minutes\nThis will only happen while this program is open";
                     } else {
                         float hours = interval / 60F;
-                        return "Automatically update every " + format(hours) + " hour" + (hours != 1 ? "s" : "");
+                        return "Automatically update every " + format(hours) + " hour" + (hours != 1 ? "s" : "") + "\nThis will only happen while this program is open";
                     }
                 }
 

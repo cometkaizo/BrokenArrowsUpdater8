@@ -1,8 +1,8 @@
-Origins 1.0.2:
-    - Added Fox sweet berry perks to glow berries
-    - Fixed Phantom not phasing at y < 0
+Origins 1.0.4 (wip):
+    - Flying Squirrel origin
 
-BrokenArrows 1.0.1 (wip):
-    - Sweet berries can only be planted while crouching
-    - Glow berries give glowing
-    - 60-minute day cycle
+Origins 1.0.3:
+    - Fixed janky slots
+
+BrokenArrows 1.0.3:
+    - Shift + T on completed advancements to share them in chat
