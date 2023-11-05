@@ -44,12 +44,20 @@ public class BrokenArrowsPanel extends JPanel {
         g.dispose();
     }
 
+    public boolean hasNoScreens() {
+        return screens.isEmpty();
+    }
+
     public List<ScreenGui> getScreens() {
         return screens;
     }
 
     public ScreenGui topMostScreen() {
-        return screens.isEmpty() ? null : screens.get(screens.size() - 1);
+        try {
+            return screens.isEmpty() ? null : screens.get(screens.size() - 1);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
     public boolean isTopmost(ScreenGui screen) {
         return screen != null && screen.equals(topMostScreen());

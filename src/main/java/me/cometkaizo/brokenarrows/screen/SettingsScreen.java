@@ -42,8 +42,9 @@ public class SettingsScreen extends ScreenGui {
         prevAutoUpdateInterval = app.settings().autoUpdateInterval;
     }
 
-    public void close() {
-        app.panel().removeScreen(this);
+    @Override
+    public void onRemoved() {
+        super.onRemoved();
         app.save();
         if (prevAutoUpdateInterval != app.settings().autoUpdateInterval) app.rescheduleAutoUpdate();
         prevAutoUpdateInterval = -1;
@@ -301,9 +302,7 @@ public class SettingsScreen extends ScreenGui {
                 }
 
                 private void changeMcDir() {
-                    if (app.selectMcDir()) {
-                        setMessage(getMessage(app));
-                    }
+                    app.selectMcDir(f -> setMessage(getMessage(app)));
                 }
 
                 @Override

@@ -23,4 +23,8 @@ public abstract class ScreenGui extends ContainerGui {
     protected double getMouseY() {
         return app.panel().mouseY;
     }
+
+    public void close() {
+        app.panel().removeScreen(this);
+    }
 }

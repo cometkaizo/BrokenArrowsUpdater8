@@ -7,7 +7,7 @@ import me.cometkaizo.screen.Length;
 
 import java.nio.file.Path;
 
-public class ReselectMCDirScreen extends InfoScreen {
+public class ReselectMCDirScreen extends AlertScreen {
     protected ButtonGui setMcDirButton;
     protected final Runnable reselectAction;
     public ReselectMCDirScreen(String title, String message, Runnable reselectAction, BrokenArrowsApp app) {
@@ -26,6 +26,11 @@ public class ReselectMCDirScreen extends InfoScreen {
     }
     public static ReselectMCDirScreen error(Path selection, Runnable reselectAction, BrokenArrowsApp app) {
         return new ReselectMCDirScreen("Error", "Minecraft installation '" + selection + "' could not be set. No further information", reselectAction, app);
+    }
+
+    @Override
+    public void onAdded() {
+        super.onAdded();
     }
 
     @Override

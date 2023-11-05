@@ -1,27 +1,32 @@
 package me.cometkaizo.brokenarrows.command;
 
-import me.cometkaizo.command.arguments.StringArgument;
-import me.cometkaizo.command.nodes.ArgumentCommandNodeBuilder;
 import me.cometkaizo.command.nodes.Command;
 
-import java.io.File;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class TestCommand extends Command {
     public TestCommand() {
-        rootNode.then(new ArgumentCommandNodeBuilder(new StringArgument("path"))).executes(this::test);
+        rootNode.executes(this::test);
     }
 
     private void test() {
-        String path = (String) parsedArgs.get("path");
-        System.out.println(path);
-        File file = new File(path);
-        System.out.println(file.exists());
-        System.out.println(file.getAbsolutePath());
-        System.out.println(Arrays.toString(file.listFiles()));
+        ProcessHandle.allProcesses()
+                .forEach(process -> System.out.println(processDetails(process)));
     }
 
+    private static String processDetails(ProcessHandle process) {
+        return String.format("%8d %8s %10s %26s %-40s",
+                process.pid(),
+                text(process.parent().map(ProcessHandle::pid)),
+                text(process.info().user()),
+                text(process.info().startInstant()),
+                text(process.info().commandLine()));
+    }
+
+    private static String text(Optional<?> optional) {
+        return optional.map(Object::toString).orElse("-");
+    }
     @Override
     public List<String> getNames() {
         return List.of("test");

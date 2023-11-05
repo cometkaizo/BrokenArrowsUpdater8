@@ -5,13 +5,13 @@ import me.cometkaizo.screen.ButtonGui;
 import me.cometkaizo.screen.Coordinate;
 import me.cometkaizo.screen.Length;
 
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
-public class ActionPromptScreen extends InfoScreen {
+public class ActionPromptScreen extends AlertScreen {
     protected ButtonGui button;
     protected String buttonText;
-    protected final Supplier<Boolean> buttonAction;
-    public ActionPromptScreen(String title, String message, String buttonText, Supplier<Boolean> buttonAction, BrokenArrowsApp app) {
+    protected final Consumer<Runnable> buttonAction;
+    public ActionPromptScreen(String title, String message, String buttonText, Consumer<Runnable> buttonAction, BrokenArrowsApp app) {
         super(title, message, app);
         this.buttonAction = buttonAction;
         this.buttonText = buttonText;
@@ -32,6 +32,6 @@ public class ActionPromptScreen extends InfoScreen {
     }
 
     private void onButtonPress() {
-        if (buttonAction.get()) app.panel().removeScreen(this);
+        buttonAction.accept(this::close);
     }
 }

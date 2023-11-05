@@ -9,13 +9,13 @@ import me.cometkaizo.util.StringUtils;
 import java.awt.*;
 import java.util.List;
 
-public class InfoScreen extends ScreenGui {
-    public static final int MARGIN = 50, MARGIN_SMALL = 20;
-    public static final Length MARGIN_LEN = Length.abs(MARGIN), MARGIN_SMALL_LEN = Length.abs(MARGIN_SMALL);
+public class AlertScreen extends ScreenGui {
+    public static final int MARGIN = InfoScreen.MARGIN, MARGIN_SMALL = InfoScreen.MARGIN_SMALL;
+    public static final Length MARGIN_LEN = InfoScreen.MARGIN_LEN, MARGIN_SMALL_LEN = InfoScreen.MARGIN_SMALL_LEN;
     protected String title;
     protected String message;
     protected Panel panel;
-    public InfoScreen(String title, String message, BrokenArrowsApp app) {
+    public AlertScreen(String title, String message, BrokenArrowsApp app) {
         super(app);
         this.title = modify(title);
         this.message = modify(message);
@@ -36,7 +36,7 @@ public class InfoScreen extends ScreenGui {
         protected TitleBar titleBar;
         protected SideBar sideBar;
         protected MessagePanel messagePanel;
-        protected Corner corner;
+        protected ButtonGui closeButton;
         public Panel(BrokenArrowsApp app) {
             super(0, 0, 1D, 1D, new GuiBackground(app, Palette::dark), app);
         }
@@ -44,13 +44,19 @@ public class InfoScreen extends ScreenGui {
         @Override
         public void init() {
             super.init();
+            closeButton = app.buttonStyle.light()
+                    .setAllTextSize(24)
+                    .setPos(Coordinate.abs(MARGIN, MARGIN))
+                    .setSize(Coordinate.abs(80, 80))
+                    .setAllText("<")
+                    .setAction(b -> close())
+                    .build();
 
-            corner = new Corner(app);
             titleBar = new TitleBar(app);
             sideBar = new SideBar(app);
             messagePanel = new MessagePanel(app);
 
-            addNestedComponent(corner);
+            addNestedComponent(closeButton);
             addNestedComponent(sideBar);
             addNestedComponent(messagePanel);
             addNestedComponent(titleBar);
@@ -60,8 +66,8 @@ public class InfoScreen extends ScreenGui {
             public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 30);
             protected GuiText text;
             public TitleBar(BrokenArrowsApp app) {
-                super(Coordinate.abs(Length.direct(() -> corner.right() + app.resolveX(MARGIN_SMALL_LEN)), MARGIN),
-                        Coordinate.abs(Length.direct(() -> 1 - corner.width() - app.resolveX(MARGIN_LEN) * 2 - app.resolveX(MARGIN_SMALL_LEN)), 80),
+                super(Coordinate.abs(Length.direct(() -> closeButton.right() + app.resolveX(MARGIN_SMALL_LEN)), MARGIN),
+                        Coordinate.abs(Length.direct(() -> 1 - closeButton.width() - app.resolveX(MARGIN_LEN) * 2 - app.resolveX(MARGIN_SMALL_LEN)), 80),
                         new GuiBackground(app, Palette::light), app);
             }
 
@@ -78,18 +84,10 @@ public class InfoScreen extends ScreenGui {
             }
         }
 
-        public static class Corner extends PanelGui {
-            public Corner(BrokenArrowsApp app) {
-                super(Coordinate.abs(MARGIN, MARGIN),
-                        Coordinate.abs(80, 80),
-                        new GuiBackground(app, Palette::light), app);
-            }
-        }
-
         public class SideBar extends PanelGui {
             public SideBar(BrokenArrowsApp app) {
-                super(Coordinate.abs(MARGIN, Length.direct(() -> corner.bottom() + app.resolveY(MARGIN_SMALL_LEN))),
-                        Coordinate.abs(80, Length.direct(() -> 1 - corner.height() - app.resolveY(MARGIN_LEN) * 2 - app.resolveY(MARGIN_SMALL_LEN))),
+                super(Coordinate.abs(MARGIN, Length.direct(() -> closeButton.bottom() + app.resolveY(MARGIN_SMALL_LEN))),
+                        Coordinate.abs(80, Length.direct(() -> 1 - closeButton.height() - app.resolveY(MARGIN_LEN) * 2 - app.resolveY(MARGIN_SMALL_LEN))),
                         new GuiBackground(app, Palette::medium), app);
             }
         }
@@ -99,7 +97,7 @@ public class InfoScreen extends ScreenGui {
             protected List<String> lines;
             protected boolean updateLines = true;
             public MessagePanel(BrokenArrowsApp app) {
-                super(Coordinate.direct(() -> titleBar.x(), () -> corner.bottom() + app.resolveY(MARGIN_SMALL_LEN)),
+                super(Coordinate.direct(() -> titleBar.x(), () -> closeButton.bottom() + app.resolveY(MARGIN_SMALL_LEN)),
                         Coordinate.direct(() -> titleBar.width(), () -> 1 - app.resolveY(MARGIN_LEN) - messagePanel.top()),
                         new GuiBackground(app, Palette::medium), app);
             }

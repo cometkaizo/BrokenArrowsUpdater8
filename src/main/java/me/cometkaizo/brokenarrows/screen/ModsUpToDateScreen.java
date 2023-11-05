@@ -5,7 +5,7 @@ import me.cometkaizo.screen.ButtonGui;
 import me.cometkaizo.screen.Coordinate;
 import me.cometkaizo.screen.Length;
 
-public class ModsUpToDateScreen extends InfoScreen {
+public class ModsUpToDateScreen extends AlertScreen {
     protected Length downloadAnywayButtonWidth = Length.abs(200), downloadAnywayButtonHeight = Length.abs(80);
     protected ButtonGui downloadAnywayButton;
     public ModsUpToDateScreen(BrokenArrowsApp app) {

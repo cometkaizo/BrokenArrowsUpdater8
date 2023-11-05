@@ -3,6 +3,7 @@ package me.cometkaizo.brokenarrows;
 import de.ralleytn.simple.json.JSONObject;
 import de.ralleytn.simple.json.JSONParseException;
 import me.cometkaizo.brokenarrows.jar.*;
+import me.cometkaizo.util.DownloadUtils;
 
 import java.io.*;
 import java.net.*;
@@ -157,6 +158,14 @@ public class ForgeUpdater extends Updater {
             if (data == null) return null;
 
             return new ForgeInfo(data.split(SEPARATOR)[0], data.split(SEPARATOR)[1]);
+        }
+        public static ForgeInfo download() {
+            try {
+                String data = DownloadUtils.downloadStr(FORGE_VERSION_DOWNLOAD_LINK.toURL());
+                return new ForgeInfo(data.split(SEPARATOR)[0], data.split(SEPARATOR)[1]);
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         public URI downloadURI() {

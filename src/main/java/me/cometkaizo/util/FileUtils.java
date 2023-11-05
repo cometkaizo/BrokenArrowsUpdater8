@@ -3,8 +3,10 @@ package me.cometkaizo.util;
 import me.cometkaizo.Main;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 
 public class FileUtils {
@@ -28,12 +30,15 @@ public class FileUtils {
 
     public static File getAppdataDir() {
         String userHomeDir = System.getProperty("user.home", ".");
-        String osType = System.getProperty("os.name").toUpperCase();
-        if (osType.contains("WIN") && System.getenv("APPDATA") != null)
+        if (OSUtils.isWindows() && System.getenv("APPDATA") != null)
             return new File(System.getenv("APPDATA"));
-        if (osType.contains("MAC"))
+        if (OSUtils.isMac())
             return new File(new File(userHomeDir, "Library"), "Application Support");
         return new File(userHomeDir);
+    }
+
+    public static File getDesktopDir() {
+        return FileSystemView.getFileSystemView().getHomeDirectory();
     }
 
     public static File thisProgramLocation() {
@@ -44,4 +49,24 @@ public class FileUtils {
         }
     }
 
+    public static void run(File file) throws IOException {
+        Desktop.getDesktop().open(file);
+    }
+
+    public static Process runBat(File file) throws IOException {
+        return Runtime.getRuntime().exec("cmd /c start \"\" \"" + file.getAbsolutePath() + "\"");
+    }
+
+    public static boolean exists(File file) {
+        return file != null && file.exists();
+    }
+
+    public static File resolve(File parent, String... children) {
+        if (parent == null) return null;
+        File result = parent;
+        for (String child : children) {
+            result = new File(result, child);
+        }
+        return result;
+    }
 }

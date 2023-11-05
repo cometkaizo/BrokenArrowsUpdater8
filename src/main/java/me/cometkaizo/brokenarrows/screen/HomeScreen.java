@@ -31,10 +31,11 @@ public class HomeScreen extends ScreenGui {
 
     public static class Panel extends PanelGui {
         protected NewsPanel newsPanel;
-        protected MenuGui menu;
-        protected ButtonGui updateModsButton, updateForgeButton, settingsButton;
-        protected String updateModsButtonText = "Update Mods", updateForgeButtonText = "Update Forge",
-                updatingText = "Updating...", settingsButtonText = "Settings";
+        //protected MenuGui menu;
+        //protected ButtonGui updateModsButton, updateForgeButton, settingsButton;
+        protected ButtonGui playButton, settingsButton, controlButton;
+        protected String playButtonText = "Play", settingsButtonText = "S",
+                updatingText = "Updating...", controlButtonText = "C";
 
         protected boolean prevIsUpdatingMods = false, prevIsUpdatingForge = false;
 
@@ -46,19 +47,39 @@ public class HomeScreen extends ScreenGui {
         public void init() {
             super.init();
             newsPanel = new NewsPanel(app);
-
+/*
             menu = new MenuGui.Builder(Coordinate.abs(MARGIN, MARGIN),
                     Coordinate.abs(Length.direct(() -> 1 - app.resolveX(MARGIN_LEN) * 2), 80),
                     RepeaterGui.Axis.HORIZONTAL, RepeaterGui.SpacingMode.START, MARGIN_SMALL_LEN, MARGIN_SMALL_LEN, app)
                     .setButtonBuilder(app.buttonStyle.light().setSize(Coordinate.abs(240, 80)))
+                    .build();*/
+
+            playButton = app.buttonStyle.light()
+                    .setPos(Coordinate.of(MARGIN_LEN, MARGIN_LEN))
+                    .setSize(Coordinate.abs(240, 80))
+                    .setAllTextSize(24)
+                    .setAllText(playButtonText)
+                    .setAction(b -> updateAndPlay())
+                    .build();
+            settingsButton = app.buttonStyle.light()
+                    .setPos(Coordinate.of(Length.direct(() -> 1 - app.resolveX(MARGIN_LEN) - settingsButton.width()), MARGIN_LEN))
+                    .setSize(Coordinate.abs(80, 80))
+                    .setAllTextSize(24)
+                    .setAllText(settingsButtonText)
+                    .setAction(b -> openSettings())
+                    .build();
+            controlButton = app.buttonStyle.light()
+                    .setPos(Coordinate.of(Length.direct(() -> settingsButton.left() - app.resolveX(MARGIN_SMALL_LEN) - controlButton.width()), MARGIN_LEN))
+                    .setSize(Coordinate.abs(80, 80))
+                    .setAllTextSize(24)
+                    .setAllText(controlButtonText)
+                    .setAction(b -> openSettings())
                     .build();
 
-            updateModsButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(updateModsButtonText).setAction(b -> updateMods()));
-            updateForgeButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(updateForgeButtonText).setAction(b -> updateForge()));
-            settingsButton = menu.addButton(app.buttonStyle.light().setAllTextSize(24).setAllText(settingsButtonText).setAction(b -> openSettings()));
-
             addNestedComponent(newsPanel);
-            addNestedComponent(menu);
+            addNestedComponent(playButton);
+            addNestedComponent(settingsButton);
+            addNestedComponent(controlButton);
         }
 
         @Override
@@ -69,9 +90,23 @@ public class HomeScreen extends ScreenGui {
             prevIsUpdatingForge = app.isUpdatingForge();
         }
 
-        private void updateText() {
+        private void updateText() {/*
             updateModsButton.setAllText(app.isUpdatingMods() ? updatingText : updateModsButtonText);
-            updateForgeButton.setAllText(app.isUpdatingForge() ? updatingText : updateForgeButtonText);
+            updateForgeButton.setAllText(app.isUpdatingForge() ? updatingText : updateForgeButtonText);*/
+        }
+
+        private void updateAndPlay() {
+            app.updateMods(modUpdater -> app.panel().addScreen(new ModProgressScreen(modUpdater, app)), modUpdater -> {
+                if (!modUpdater.getProblems().isEmpty())
+                    app.showModUpdateFeedback(modUpdater);
+                else {
+                    app.updateForge(forgeUpdater -> app.panel().addScreen(new ForgeProgressScreen(forgeUpdater, app)), forgeUpdater -> {
+                        if (!forgeUpdater.getProblems().isEmpty())
+                            app.showForgeUpdateFeedback(forgeUpdater);
+                        else app.launch();
+                    });
+                }
+            });
         }
 
         private void updateMods() {
@@ -96,7 +131,7 @@ public class HomeScreen extends ScreenGui {
             protected boolean updateLines = true;
 
             public NewsPanel(BrokenArrowsApp app) {
-                super(Coordinate.abs(MARGIN, Length.direct(() -> menu.bottom() + app.resolveY(MARGIN_SMALL_LEN))),
+                super(Coordinate.abs(MARGIN, Length.direct(() -> playButton.bottom() + app.resolveY(MARGIN_SMALL_LEN))),
                         Coordinate.direct(() -> 1 - newsPanel.left() * 2, () -> 1 - app.resolveY(MARGIN_LEN) - newsPanel.top()),
                         new GuiBackground(app, Palette::medium), app);
             }

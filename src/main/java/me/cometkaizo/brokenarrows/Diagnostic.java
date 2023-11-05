@@ -11,4 +11,11 @@ public interface Diagnostic {
             return message + "\n\n" + StringUtils.getAbbreviatedMessage(e);
         }
     }
+
+    record Warning(Throwable e, String message) implements Diagnostic {
+        @Override
+        public String getString() {
+            return message + "\n\n" + StringUtils.getAbbreviatedMessage(e);
+        }
+    }
 }

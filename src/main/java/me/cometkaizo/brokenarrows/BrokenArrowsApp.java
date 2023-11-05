@@ -23,14 +23,15 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Properties;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static me.cometkaizo.util.FileUtils.exists;
 
 public class BrokenArrowsApp extends App {
     public static final String DATA_FOLDER_NAME = "BrokenArrows";
@@ -60,6 +61,8 @@ public class BrokenArrowsApp extends App {
 
     protected final List<ModUpdater> modUpdaters = Collections.synchronizedList(new ArrayList<>(1));
     protected final List<ForgeUpdater> forgeUpdaters = Collections.synchronizedList(new ArrayList<>(1));
+    protected final MinecraftLauncher minecraftLauncher;
+    protected ScheduledFuture<?> stealMinecraftBinLoop;
 
     protected BrokenArrowsApp() {
         super(null);
@@ -67,6 +70,7 @@ public class BrokenArrowsApp extends App {
         info = new BrokenArrowsInfo();
         properties = new Properties();
         buttonStyle = new ButtonStyle(this);
+        minecraftLauncher = new MinecraftLauncher(this);
     }
 
     @Override
@@ -143,36 +147,38 @@ public class BrokenArrowsApp extends App {
         var downloadedMods = modUpdater.getDownloadedMods();
 
         if (downloadedMods.isEmpty() && problems.isEmpty()) panel.addScreen(getModUpToDateScreen());
-        else if (!downloadedMods.isEmpty()) panel.addScreen(getModSuccessScreen(problems, downloadedMods));
-        else panel.addScreen(getModErrorScreen(problems));
+        else if (problems.isEmpty()) panel.addScreen(getModSuccessScreen(downloadedMods));
+        else panel.addScreen(getModErrorScreen(problems, downloadedMods));
     }
 
-    private InfoScreen getModUpToDateScreen() {
+    private AlertScreen getModUpToDateScreen() {
         return new ModsUpToDateScreen(this);
     }
-    private InfoScreen getModSuccessScreen(List<Diagnostic> problems, List<String> downloadedMods) {
-        String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
-        return new InfoScreen("Success!", "Installed mods:\n  > " +
+    private AlertScreen getModSuccessScreen(List<String> downloadedMods) {
+        return new AlertScreen("Success!", "Installed mods:\n  > " +
                 String.join("\n  > ", downloadedMods) + "\n\nIf you have Minecraft or the Minecraft Launcher open, " +
-                "you will need to restart it.\n\n" + problemsStr, this);
+                "you will need to restart it.", this);
     }
-    private InfoScreen getModErrorScreen(List<Diagnostic> problems) {
+    private AlertScreen getModErrorScreen(List<Diagnostic> problems, List<String> downloadedMods) {
+        String modsStr = downloadedMods.isEmpty() ? "" : "Installed mods:\n  > " + String.join("\n  > ", downloadedMods) + "\n\n";
         String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
-        return new InfoScreen("Could not install mods :/", problemsStr, this);
+
+        return new AlertScreen("Encountered a problem :/",
+                modsStr + problemsStr, this);
     }
 
-    private InfoScreen getForgeUpToDateScreen() {
+    private AlertScreen getForgeUpToDateScreen() {
         return new ForgeUpToDateScreen(this);
     }
-    private InfoScreen getForgeSuccessScreen() {
-        return new InfoScreen("Success!", """
+    private AlertScreen getForgeSuccessScreen() {
+        return new AlertScreen("Success!", """
                 Installed Forge.
 
                 If you have Minecraft or the Minecraft Launcher open, you will need to restart it to see the Forge installation.""", this);
     }
-    private InfoScreen getForgeErrorScreen(List<Diagnostic> problems) {
+    private AlertScreen getForgeErrorScreen(List<Diagnostic> problems) {
         String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
-        return new InfoScreen("Could not install Forge :/", problemsStr, this);
+        return new AlertScreen("Could not install Forge :/", problemsStr, this);
     }
 
 
@@ -195,10 +201,45 @@ public class BrokenArrowsApp extends App {
         load();
         tryUpdateThis();
 
+        if (panel.topMostScreen() == Screens.HOME.get()) onSetupComplete();
+    }
+
+    public void onSetupComplete() {
         rescheduleAutoUpdate();
         tryAutoUpdateOnStart();
 
-        if (firstTimeOpening) settings().updateOnStart = true;
+        if (firstTimeOpening) {
+            settings().updateOnStart = true;
+            save();
+        }
+
+        if (!minecraftLauncher.canLaunch()) {
+            scheduleStealMinecraftBin();
+        }
+    }
+
+    private void scheduleStealMinecraftBin() {
+        if (stealMinecraftBinLoop != null) return;
+        stealMinecraftBinLoop = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                List<Diagnostic> problems = new ArrayList<>(1);
+                minecraftLauncher.stealMinecraftBin(problems);
+                if (problems.isEmpty()) stealMinecraftBinLoop.cancel(false);
+                showLauncherFeedback(problems);
+            } catch (Throwable e) {
+                err(e);
+            }
+        }, 0, 5, TimeUnit.SECONDS);
+    }
+
+    public void showLauncherFeedback(List<Diagnostic> problems) {
+        if (problems.size() > 1 || problems.size() == 1 && problems.get(0) instanceof Diagnostic.Error)
+            panel.addScreen(getLauncherErrorScreen(problems));
+    }
+    private AlertScreen getLauncherErrorScreen(List<Diagnostic> problems) {
+        String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
+
+        return new AlertScreen("Could not get Minecraft bin :/", problemsStr, this);
     }
 
     private void tryAutoUpdateOnStart() {
@@ -356,32 +397,28 @@ public class BrokenArrowsApp extends App {
     public boolean checkForMinecraftFolder() {
         if (minecraftFolder() == null) {
             panel.addScreen(new ActionPromptScreen("No Minecraft directory found", "Please re-select your minecraft directory.",
-                    "Reselect", () -> {
-                selectMcDir();
-                return true;
-            }, this));
+                    "Reselect", close -> selectMcDir(done -> close.run()), this));
             return false;
         }
         return true;
     }
 
-    public boolean selectMcDir() {
+    public void selectMcDir(Consumer<File> onDone) {
         var selection = FileUtils.promptDir(defaultMinecraftFolder(), panel);
         if (selection != null) {
             var path = selection.toPath();
             if (!selection.exists()) {
-                panel().addScreen(ReselectMCDirScreen.dirNotFound(path, this::selectMcDir, this));
+                panel().addScreen(ReselectMCDirScreen.dirNotFound(path, () -> selectMcDir(onDone), this));
             } else if (!selection.isDirectory()) {
-                panel().addScreen(ReselectMCDirScreen.notADir(path, this::selectMcDir, this));
+                panel().addScreen(ReselectMCDirScreen.notADir(path, () -> selectMcDir(onDone), this));
             } else if (!hasLauncherProfile(selection)) {
-                panel().addScreen(ReselectMCDirScreen.notAMinecraftInstall(path, this::selectMcDir, this));
+                panel().addScreen(ReselectMCDirScreen.notAMinecraftInstall(path, () -> selectMcDir(onDone), this));
             } else if (setMinecraftFolder(selection)) {
-                return true;
+                if (onDone != null) onDone.accept(selection);
             } else {
-                panel().addScreen(ReselectMCDirScreen.error(path, this::selectMcDir, this));
+                panel().addScreen(ReselectMCDirScreen.error(path, () -> selectMcDir(onDone), this));
             }
         }
-        return false;
     }
 
     public File defaultMinecraftFolder() {
@@ -437,15 +474,66 @@ public class BrokenArrowsApp extends App {
         });
     }
 
+    public void launch() {
+        List<Throwable> problems = new ArrayList<>(1);
+        var info = new InfoScreen("Launching Minecraft...", "Opening Minecraft Launcher...", this);
+        panel.addScreen(info);
+
+        try {
+            if (openMinecraft()) {
+                info.close();
+                return;
+            }
+        } catch (Exception e) {
+            problems.add(e);
+        }
+
+        if (!openLauncher(problems)) {
+            if (problems.isEmpty()) reportError(null, "Could not find Minecraft launcher");
+            problems.forEach(e -> reportError(e, "Could not open Minecraft launcher"));
+        }
+
+        info.close();
+    }
+
+    private boolean openMinecraft() throws IOException, InterruptedException {
+        if (minecraftLauncher.canLaunch()) {
+            var p = minecraftLauncher.launch();
+            if (p != null) p.waitFor();
+            return p != null;
+        }
+        scheduleStealMinecraftBin();
+        return false;
+    }
+
+    private boolean openLauncher(List<Throwable> problems) {
+        File minecraftLauncher = getMinecraftLauncherDesktopShortcut();
+        if (exists(minecraftLauncher)) {
+            try {
+                FileUtils.run(minecraftLauncher);
+                return true;
+            } catch (Exception e) {
+                problems.add(e);
+            }
+        }
+        return false;
+    }
+
+    public static File getMinecraftLauncherDesktopShortcut() {
+        File desktop = FileUtils.getDesktopDir();
+        if (!exists(desktop)) return null;
+        return new File(desktop, "Minecraft Launcher.lnk");
+    }
+
     private void setDataFolderIn(File parent) {
         try {
-            if (parent != null && parent.exists()) {
+            if (exists(parent)) {
                 this.dataFolder = new File(parent, DATA_FOLDER_NAME);
             } else {
                 this.dataFolder = new File(FileUtils.thisProgramLocation(), DATA_FOLDER_NAME);
             }
             if (!dataFolder.exists() && !dataFolder.mkdirs())
-                reportError(null, "Could create data folder at " + dataFolder.getPath());
+                reportError(null, "Could not create data folder at " + dataFolder.getPath());
         } catch (SecurityException e) {
             dataFolder = null;
             reportError(e, "Could not set data folder in " + parent);
@@ -513,38 +601,44 @@ public class BrokenArrowsApp extends App {
     }
     public void reportError(Throwable e, String title, String message) {
         err(e, message);
-        panel.addScreen(new InfoScreen(title, message + "\n\n" + StringUtils.getAbbreviatedMessage(e), this));
+        panel.addScreen(new AlertScreen(title, message + "\n\n" + StringUtils.getAbbreviatedMessage(e), this));
     }
 
     private class InputListener implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mouseReleased(e.getButton(), (double) e.getX() / panel.getWidth(), (double) e.getY() / panel.getHeight());
         }
 
         @Override
         public void mouseClicked(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mouseClicked(e.getButton(), (double) e.getX() / panel.getWidth(), (double) e.getY() / panel.getHeight());
         }
 
         @Override
         public void mousePressed(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mousePressed(e.getButton(), (double) e.getX() / panel.getWidth(), (double) e.getY() / panel.getHeight());
         }
 
         @Override
         public void mouseEntered(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mouseEntered((double) e.getX() / panel.getWidth(), (double) e.getY() / panel.getHeight());
         }
 
         @Override
         public void mouseExited(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mouseExited((double) e.getX() / panel.getWidth(), (double) e.getY() / panel.getHeight());
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             double x = (double) e.getX() / panel.getWidth();
             double y = (double) e.getY() / panel.getHeight();
             panel.mouseX = x;
@@ -554,6 +648,7 @@ public class BrokenArrowsApp extends App {
 
         @Override
         public void mouseDragged(MouseEvent e) {
+            if (panel.hasNoScreens()) return;
             double x = (double) e.getX() / panel.getWidth();
             double y = (double) e.getY() / panel.getHeight();
             panel.mouseX = x;
@@ -583,22 +678,26 @@ public class BrokenArrowsApp extends App {
 
         @Override
         public void keyTyped(KeyEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().keyTyped(e.getKeyCode());
         }
 
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_F4 && !e.isAltDown()) System.exit(130);
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().keyPressed(e.getKeyCode());
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().keyReleased(e.getKeyCode());
         }
 
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
+            if (panel.hasNoScreens()) return;
             panel.topMostScreen().mouseWheelMoved(e);
         }
     }
