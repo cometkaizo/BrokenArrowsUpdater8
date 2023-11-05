@@ -225,20 +225,23 @@ public class BrokenArrowsApp extends App {
                 List<Diagnostic> problems = new ArrayList<>(1);
                 minecraftLauncher.stealMinecraftBin(problems);
                 if (problems.isEmpty()) stealMinecraftBinLoop.cancel(false);
-                showLauncherFeedback(problems);
-            } catch (Throwable e) {
+                else showLauncherFeedback(problems);
+            } catch (Exception e) {
                 err(e);
             }
         }, 0, 5, TimeUnit.SECONDS);
     }
 
     public void showLauncherFeedback(List<Diagnostic> problems) {
-        if (problems.size() > 1 || problems.size() == 1 && problems.get(0) instanceof Diagnostic.Error)
+        if (problems.isEmpty()) panel.addScreen(getLauncherSuccessScreen());
+        else if (problems.size() > 1 || problems.get(0) instanceof Diagnostic.Error)
             panel.addScreen(getLauncherErrorScreen(problems));
     }
-    private AlertScreen getLauncherErrorScreen(List<Diagnostic> problems) {
+    public AlertScreen getLauncherSuccessScreen() {
+        return new AlertScreen("Success!", "Got and saved Minecraft bin", this);
+    }
+    public AlertScreen getLauncherErrorScreen(List<Diagnostic> problems) {
         String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
-
         return new AlertScreen("Could not get Minecraft bin :/", problemsStr, this);
     }
 
@@ -443,6 +446,10 @@ public class BrokenArrowsApp extends App {
         boolean success = settings().setMinecraftFolder(mc);
         if (success) save();
         return success;
+    }
+
+    public MinecraftLauncher minecraftLauncher() {
+        return minecraftLauncher;
     }
 
     public boolean hasLauncherProfile(File file) {

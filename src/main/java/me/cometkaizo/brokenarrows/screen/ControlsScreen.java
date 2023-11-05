@@ -1,19 +1,18 @@
 package me.cometkaizo.brokenarrows.screen;
 
 import me.cometkaizo.brokenarrows.BrokenArrowsApp;
+import me.cometkaizo.brokenarrows.Diagnostic;
 import me.cometkaizo.screen.*;
 import me.cometkaizo.screen.color.ColorSource;
 import me.cometkaizo.screen.color.Palette;
-import me.cometkaizo.util.MathUtils;
 import me.cometkaizo.util.StringUtils;
 
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-public class SettingsScreen extends ScreenGui {
+public class ControlsScreen extends ScreenGui {
     public static final int MARGIN = 50, MARGIN_SMALL = 20;
     public static final Length MARGIN_LEN = Length.abs(MARGIN), MARGIN_SMALL_LEN = Length.abs(MARGIN_SMALL);
     protected static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#########");
@@ -24,9 +23,9 @@ public class SettingsScreen extends ScreenGui {
     protected Panel panel;
 
     protected int prevAutoUpdateInterval;
-    public SettingsScreen(BrokenArrowsApp app) {
+    public ControlsScreen(BrokenArrowsApp app) {
         super(app);
-        this.title = "Settings";
+        this.title = "Control Panel";
     }
 
     @Override
@@ -112,7 +111,7 @@ public class SettingsScreen extends ScreenGui {
         
         public class AllSettingsPanel extends PanelGui {
             protected boolean updateLines = true;
-            protected List<SettingPanel> settings = new ArrayList<>(3);
+            protected List<ControlPanel> settings = new ArrayList<>(3);
             public AllSettingsPanel(BrokenArrowsApp app) {
                 super(Coordinate.direct(() -> titleBar.x(), () -> closeButton.bottom() + app.resolveY(MARGIN_SMALL_LEN)),
                         Coordinate.direct(() -> titleBar.width(), () -> 1 - app.resolveY(MARGIN_LEN) - allSettingsPanel.top()),
@@ -122,25 +121,25 @@ public class SettingsScreen extends ScreenGui {
             @Override
             public void init() {
                 super.init();
-                add(new AutoUpdateIntervalSetting(app));
-                add(new MinecraftFolderSetting(app));
-                add(new UpdateOnStartSetting(app));
+                add(new UpdateModsControl(app));
+                add(new UpdateForgeControl(app));
+                add(new StealMinecraftBinControl(app));
 
                 settings.get(0).updateY();
                 settings.forEach(this::addNestedComponent);
             }
 
-            private void add(SettingPanel panel) {
+            private void add(ControlPanel panel) {
                 panel.index = settings.size();
                 settings.add(panel);
             }
 
-            public class SettingPanel extends PanelGui {
+            public class ControlPanel extends PanelGui {
                 public static final Font FONT = new Font(Font.DIALOG, Font.PLAIN, 18);
                 protected int index;
                 private String message;
                 protected List<String> lines;
-                public SettingPanel(String message, BrokenArrowsApp app) {
+                public ControlPanel(String message, BrokenArrowsApp app) {
                     super(Coordinate.abs(app.resolveXAbs(allSettingsPanel.position.x()) + app.resolveXAbs(MARGIN_SMALL_LEN), 0),
                             Coordinate.abs(0, 0),
                             new GuiBackground(app, Palette::light), app);
@@ -190,21 +189,21 @@ public class SettingsScreen extends ScreenGui {
                 }
 
                 protected void updateY() {
-                    SettingPanel prevSetting = prevSetting();
+                    ControlPanel prevSetting = prevSetting();
                     position.setY(Length.direct(() -> (prevSetting != null ? prevSetting.bottom() : allSettingsPanel.y()) + app.resolveY(MARGIN_SMALL_LEN)));
 
                     updateNextSettingY();
                 }
 
                 protected void updateNextSettingY() {
-                    SettingPanel nextSetting = nextSetting();
+                    ControlPanel nextSetting = nextSetting();
                     if (nextSetting != null) nextSetting.updateY();
                 }
 
-                protected SettingPanel prevSetting() {
+                protected ControlPanel prevSetting() {
                     return index == 0 ? null : settings.get(index - 1);
                 }
-                protected SettingPanel nextSetting() {
+                protected ControlPanel nextSetting() {
                     return index == settings.size() - 1 ? null : settings.get(index + 1);
                 }
 
@@ -214,35 +213,26 @@ public class SettingsScreen extends ScreenGui {
                     updateLines = true;
                 }
             }
-            
-            public class AutoUpdateIntervalSetting extends SettingPanel {
-                protected ButtonGui increaseIntervalButton, decreaseIntervalButton;
 
-                protected static final List<Integer> INTERVALS = List.of(5, 15, 30, 60, 90, 60 * 3, 60 * 24);
-                public AutoUpdateIntervalSetting(BrokenArrowsApp app) {
-                    super(getMessage(app), app);
+            public class UpdateModsControl extends ControlPanel {
+                protected ButtonGui updateButton;
+
+                public UpdateModsControl(BrokenArrowsApp app) {
+                    super(getMessage(), app);
                 }
 
                 @Override
                 public void init() {
                     super.init();
-                    increaseIntervalButton = app.buttonStyle.medium()
+                    updateButton = app.buttonStyle.medium()
                             .setAllTextSize(18)
-                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - increaseIntervalButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
-                            .setSize(Coordinate.abs(40, 40))
-                            .setAllText("+")
-                            .setAction(b -> increaseInterval())
-                            .build();
-                    decreaseIntervalButton = app.buttonStyle.medium()
-                            .setAllTextSize(18)
-                            .setPos(Coordinate.direct(() -> increaseIntervalButton.left() - app.resolveX(MARGIN_SMALL_LEN) - decreaseIntervalButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
-                            .setSize(Coordinate.abs(40, 40))
-                            .setAllText("-")
-                            .setAction(b -> decreaseInterval())
+                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - updateButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(90, 40))
+                            .setAllText("Update")
+                            .setAction(b -> updateMods())
                             .build();
 
-                    addNestedComponent(increaseIntervalButton);
-                    addNestedComponent(decreaseIntervalButton);
+                    addNestedComponent(updateButton);
                 }
 
                 @Override
@@ -250,113 +240,92 @@ public class SettingsScreen extends ScreenGui {
                     size.setY(app.resolveYAbs(Length.abs(40)) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
-                private void increaseInterval() {
-                    int currentIndex = Collections.binarySearch(INTERVALS, app.settings().autoUpdateInterval);
-                    int nextIndex = MathUtils.clamp(currentIndex >= 0 ? currentIndex + 1 : -currentIndex - 1, 0, INTERVALS.size() - 1);
-                    app.settings().autoUpdateInterval = INTERVALS.get(nextIndex);
-                    setMessage(getMessage(app));
+                private void updateMods() {
+                    if (app.isUpdatingMods()) return;
+                    app.updateMods(updater -> app.panel().addScreen(new ModProgressScreen(updater, app)), app::showModUpdateFeedback);
                 }
 
-                private void decreaseInterval() {
-                    int currentIndex = Collections.binarySearch(INTERVALS, app.settings().autoUpdateInterval);
-                    int nextIndex = MathUtils.clamp(currentIndex >= 0 ? currentIndex - 1 : -currentIndex - 2, 0, INTERVALS.size() - 1);
-                    app.settings().autoUpdateInterval = INTERVALS.get(nextIndex);
-                    setMessage(getMessage(app));
-                }
-
-                private static String getMessage(BrokenArrowsApp app) {
-                    int interval = app.settings().autoUpdateInterval;
-                    if (interval < 60) {
-                        return "Automatically update every " + interval + " minutes\nThis will only happen while this program is open";
-                    } else {
-                        float hours = interval / 60F;
-                        return "Automatically update every " + format(hours) + " hour" + (hours != 1 ? "s" : "") + "\nThis will only happen while this program is open";
-                    }
-                }
-
-                private static String format(float hours) {
-                    return DECIMAL_FORMAT.format(Math.abs(hours));
+                private static String getMessage() {
+                    return "Update mods";
                 }
             }
 
-            public class MinecraftFolderSetting extends SettingPanel {
-                protected ButtonGui setMCButton;
+            public class UpdateForgeControl extends ControlPanel {
+                protected ButtonGui updateButton;
 
-                public MinecraftFolderSetting(BrokenArrowsApp app) {
-                    super(getMessage(app), app);
+                public UpdateForgeControl(BrokenArrowsApp app) {
+                    super(getMessage(), app);
                 }
 
                 @Override
                 public void init() {
                     super.init();
-                    setMCButton = app.buttonStyle.medium()
+                    updateButton = app.buttonStyle.medium()
                             .setAllTextSize(18)
-                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - setMCButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
-                            .setSize(Coordinate.abs(100, 40))
-                            .setAllText("Change")
-                            .setAction(b -> changeMcDir())
+                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - updateButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(90, 40))
+                            .setAllText("Update")
+                            .setAction(b -> updateForge())
                             .build();
 
-                    addNestedComponent(setMCButton);
-                }
-
-                private void changeMcDir() {
-                    app.selectMcDir(f -> setMessage(getMessage(app)));
+                    addNestedComponent(updateButton);
                 }
 
                 @Override
                 protected void updateHeight(int textHeight, int lineHeight) {
-                    size.setY(app.resolveYAbs(setMCButton.size().y()) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                    size.setY(app.resolveYAbs(Length.abs(40)) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
-                private static String getMessage(BrokenArrowsApp app) {
-                    String mcDir = app.minecraftFolder().getAbsolutePath();
-                    return "This app updates mods at " + mcDir;
+                private void updateForge() {
+                    if (app.isUpdatingForge()) return;
+                    app.updateForge(updater -> app.panel().addScreen(new ForgeProgressScreen(updater, app)), app::showForgeUpdateFeedback);
+                }
+
+                private static String getMessage() {
+                    return "Update forge";
                 }
             }
 
-            public class UpdateOnStartSetting extends SettingPanel {
-                protected String toggleButtonTurnOnText = "Turn On", toggleButtonTurnOffText = "Turn Off";
-                protected ButtonGui toggleButton;
+            public class StealMinecraftBinControl extends ControlPanel {
+                protected ButtonGui stealButton;
 
-                public UpdateOnStartSetting(BrokenArrowsApp app) {
-                    super(getMessage(app), app);
+                public StealMinecraftBinControl(BrokenArrowsApp app) {
+                    super(getMessage(), app);
                 }
 
                 @Override
                 public void init() {
                     super.init();
-                    toggleButton = app.buttonStyle.medium()
+                    stealButton = app.buttonStyle.medium()
                             .setAllTextSize(18)
-                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - toggleButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
-                            .setSize(Coordinate.abs(100, 40))
-                            .setAction(b -> toggle())
+                            .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - stealButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
+                            .setSize(Coordinate.abs(60, 40))
+                            .setAllText("Get")
+                            .setAction(b -> steal())
                             .build();
-                    updateText();
 
-                    addNestedComponent(toggleButton);
-                }
-
-                private void updateText() {
-                    var text = app.settings().updateOnStart ? toggleButtonTurnOffText : toggleButtonTurnOnText;
-                    toggleButton.setAllText(text);
-
-                    setMessage(getMessage(app));
-                }
-
-                private void toggle() {
-                    app.settings().updateOnStart = !app.settings().updateOnStart;
-                    updateText();
+                    addNestedComponent(stealButton);
                 }
 
                 @Override
                 protected void updateHeight(int textHeight, int lineHeight) {
-                    size.setY(app.resolveYAbs(toggleButton.size().y()) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
+                    size.setY(app.resolveYAbs(Length.abs(40)) + app.resolveYAbs(MARGIN_SMALL_LEN) * 2);
                 }
 
-                private static String getMessage(BrokenArrowsApp app) {
-                    String state = app.settings().updateOnStart ? "Yes" : "No";
-                    return "Automatically update upon starting the program? " + state;
+                private void steal() {
+                    List<Diagnostic> problems = new ArrayList<>(1);
+                    app.minecraftLauncher().stealMinecraftBin(problems);
+
+                    showLauncherFeedback(problems);
+                }
+                public void showLauncherFeedback(List<Diagnostic> problems) {
+                    if (problems.isEmpty()) app.panel().addScreen(app.getLauncherSuccessScreen());
+                    else app.panel().addScreen(app.getLauncherErrorScreen(problems));
+                }
+
+                private static String getMessage() {
+                    return "Get Minecraft bin. Allows this app to open Minecraft directly after pressing \"Play\"\n" +
+                            "Currently only works for windows. Open the Minecraft Launcher, wait for forge to start, and press \"Get\"";
                 }
             }
         }

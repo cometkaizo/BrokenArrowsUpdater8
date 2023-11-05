@@ -5,4 +5,4 @@ Origins 1.0.3:
     - Fixed janky slots
 
 BrokenArrows 1.0.3:
-    - Shift + T on completed advancements to share them in chat
+    - Shift + T on completed advancements to share them in chat EXCEPT it doesnt work and it kicks u lmaooo i need to fix that

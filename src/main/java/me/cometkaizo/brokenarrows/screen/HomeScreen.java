@@ -31,11 +31,7 @@ public class HomeScreen extends ScreenGui {
 
     public static class Panel extends PanelGui {
         protected NewsPanel newsPanel;
-        //protected MenuGui menu;
-        //protected ButtonGui updateModsButton, updateForgeButton, settingsButton;
         protected ButtonGui playButton, settingsButton, controlButton;
-        protected String playButtonText = "Play", settingsButtonText = "S",
-                updatingText = "Updating...", controlButtonText = "C";
 
         protected boolean prevIsUpdatingMods = false, prevIsUpdatingForge = false;
 
@@ -47,33 +43,27 @@ public class HomeScreen extends ScreenGui {
         public void init() {
             super.init();
             newsPanel = new NewsPanel(app);
-/*
-            menu = new MenuGui.Builder(Coordinate.abs(MARGIN, MARGIN),
-                    Coordinate.abs(Length.direct(() -> 1 - app.resolveX(MARGIN_LEN) * 2), 80),
-                    RepeaterGui.Axis.HORIZONTAL, RepeaterGui.SpacingMode.START, MARGIN_SMALL_LEN, MARGIN_SMALL_LEN, app)
-                    .setButtonBuilder(app.buttonStyle.light().setSize(Coordinate.abs(240, 80)))
-                    .build();*/
 
             playButton = app.buttonStyle.light()
                     .setPos(Coordinate.of(MARGIN_LEN, MARGIN_LEN))
                     .setSize(Coordinate.abs(240, 80))
                     .setAllTextSize(24)
-                    .setAllText(playButtonText)
+                    .setAllText("Play")
                     .setAction(b -> updateAndPlay())
                     .build();
             settingsButton = app.buttonStyle.light()
                     .setPos(Coordinate.of(Length.direct(() -> 1 - app.resolveX(MARGIN_LEN) - settingsButton.width()), MARGIN_LEN))
                     .setSize(Coordinate.abs(80, 80))
                     .setAllTextSize(24)
-                    .setAllText(settingsButtonText)
+                    .setAllText("S")
                     .setAction(b -> openSettings())
                     .build();
             controlButton = app.buttonStyle.light()
                     .setPos(Coordinate.of(Length.direct(() -> settingsButton.left() - app.resolveX(MARGIN_SMALL_LEN) - controlButton.width()), MARGIN_LEN))
                     .setSize(Coordinate.abs(80, 80))
                     .setAllTextSize(24)
-                    .setAllText(controlButtonText)
-                    .setAction(b -> openSettings())
+                    .setAllText("C")
+                    .setAction(b -> openControls())
                     .build();
 
             addNestedComponent(newsPanel);
@@ -90,9 +80,7 @@ public class HomeScreen extends ScreenGui {
             prevIsUpdatingForge = app.isUpdatingForge();
         }
 
-        private void updateText() {/*
-            updateModsButton.setAllText(app.isUpdatingMods() ? updatingText : updateModsButtonText);
-            updateForgeButton.setAllText(app.isUpdatingForge() ? updatingText : updateForgeButtonText);*/
+        private void updateText() {
         }
 
         private void updateAndPlay() {
@@ -109,17 +97,12 @@ public class HomeScreen extends ScreenGui {
             });
         }
 
-        private void updateMods() {
-            if (app.isUpdatingMods()) return;
-            app.updateMods(updater -> app.panel().addScreen(new ModProgressScreen(updater, app)), app::showModUpdateFeedback);
-        }
-        private void updateForge() {
-            if (app.isUpdatingForge()) return;
-            app.updateForge(updater -> app.panel().addScreen(new ForgeProgressScreen(updater, app)), app::showForgeUpdateFeedback);
-        }
-
         private void openSettings() {
             app.panel().addScreen(Screens.SETTINGS.get());
+        }
+
+        private void openControls() {
+            app.panel().addScreen(Screens.CONTROLS.get());
         }
 
         public class NewsPanel extends PanelGui {

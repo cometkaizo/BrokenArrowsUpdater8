@@ -1,5 +1,6 @@
 package me.cometkaizo.brokenarrows;
 
+import me.cometkaizo.brokenarrows.screen.ControlsScreen;
 import me.cometkaizo.brokenarrows.screen.HomeScreen;
 import me.cometkaizo.brokenarrows.screen.IntroScreen;
 import me.cometkaizo.brokenarrows.screen.SettingsScreen;
@@ -14,4 +15,5 @@ public class Screens {
     public static final Supplier<IntroScreen> INTRO = SCREENS.register("intro", IntroScreen::new);
     public static final Supplier<HomeScreen> HOME = SCREENS.register("home", HomeScreen::new);
     public static final Supplier<SettingsScreen> SETTINGS = SCREENS.register("settings", SettingsScreen::new);
+    public static final Supplier<ControlsScreen> CONTROLS = SCREENS.register("controls", ControlsScreen::new);
 }
