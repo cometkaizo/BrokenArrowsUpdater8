@@ -299,8 +299,8 @@ public class ControlsScreen extends ScreenGui {
                     stealButton = app.buttonStyle.medium()
                             .setAllTextSize(18)
                             .setPos(Coordinate.direct(() -> right() - app.resolveX(MARGIN_SMALL_LEN) - stealButton.width(), () -> top() + app.resolveY(MARGIN_SMALL_LEN)))
-                            .setSize(Coordinate.abs(60, 40))
-                            .setAllText("Get")
+                            .setSize(Coordinate.abs(90, 40))
+                            .setAllText("Setup")
                             .setAction(b -> steal())
                             .build();
 
@@ -314,7 +314,7 @@ public class ControlsScreen extends ScreenGui {
 
                 private void steal() {
                     List<Diagnostic> problems = new ArrayList<>(1);
-                    app.minecraftLauncher().stealMinecraftBin(problems);
+                    app.minecraftLauncher().setupBypass(problems);
 
                     showLauncherFeedback(problems);
                 }
@@ -324,8 +324,7 @@ public class ControlsScreen extends ScreenGui {
                 }
 
                 private static String getMessage() {
-                    return "Get Minecraft bin. Allows this app to open Minecraft directly after pressing \"Play\"\n" +
-                            "Currently only works for windows. Open the Minecraft Launcher, wait for forge to start, and press \"Get\"";
+                    return "Setup launcher bypass\nMinecraft must be running (on the correct version)";
                 }
             }
         }

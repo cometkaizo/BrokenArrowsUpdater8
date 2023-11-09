@@ -25,6 +25,7 @@ public class ForgeUpdater extends Updater {
                     file.replace('/', '.').substring(1, file.length() - 6) : null;
     protected JarExecutor jarExecutor;
     public final List<Consumer<Event>> listeners = new ArrayList<>(1);
+    protected ForgeInfo info;
     protected boolean success;
     protected boolean alreadyUpToDate;
 
@@ -46,13 +47,13 @@ public class ForgeUpdater extends Updater {
         alreadyUpToDate = false;
         problems = new ArrayList<>(1);
 
-        ForgeInfo forgeInfo = ForgeInfo.download(this);
-        if (forgeInfo != null) {
-            var isForgeUpToDate = hasForgeVersion(forgeInfo.namespace);
+        info = ForgeInfo.download(this);
+        if (info != null) {
+            var isForgeUpToDate = hasForgeVersion(info.namespace);
             if (isForgeUpToDate.isPresent()) {
                 alreadyUpToDate = isForgeUpToDate.get();
                 if (!alreadyUpToDate || force)
-                    success = tryAutoInstall(forgeInfo);
+                    success = tryAutoInstall(info);
             }
         }
         broadcast(new Event.End());

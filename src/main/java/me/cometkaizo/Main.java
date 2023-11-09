@@ -3,7 +3,7 @@ package me.cometkaizo;
 import me.cometkaizo.brokenarrows.BrokenArrowsDriver;
 
 public class Main {
-    // TODO: 2023-11-04 Add option to move irrelevant mods out of mods folder after choosing minecraft folder or after updating
+    // rename to something better: Solstice? Equinox?
     public static void main(String[] args) {
         new BrokenArrowsDriver().start();
     }

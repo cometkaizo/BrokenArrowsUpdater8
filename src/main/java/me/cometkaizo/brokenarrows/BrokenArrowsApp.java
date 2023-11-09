@@ -23,10 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -61,6 +59,7 @@ public class BrokenArrowsApp extends App {
 
     protected final List<ModUpdater> modUpdaters = Collections.synchronizedList(new ArrayList<>(1));
     protected final List<ForgeUpdater> forgeUpdaters = Collections.synchronizedList(new ArrayList<>(1));
+    protected String forgeVersion;
     protected final MinecraftLauncher minecraftLauncher;
     protected ScheduledFuture<?> stealMinecraftBinLoop;
 
@@ -100,6 +99,8 @@ public class BrokenArrowsApp extends App {
             addTask(() -> {
                 try {
                     forgeUpdater.update(force);
+                    if (forgeUpdater.success || forgeUpdater.alreadyUpToDate)
+                        if (forgeUpdater.info != null) forgeVersion = forgeUpdater.info.namespace();
                     postTask.accept(forgeUpdater);
                 } finally {
                     forgeUpdaters.remove(forgeUpdater);
@@ -212,10 +213,10 @@ public class BrokenArrowsApp extends App {
             settings().updateOnStart = true;
             save();
         }
-
+/*
         if (!minecraftLauncher.canLaunch()) {
             scheduleStealMinecraftBin();
-        }
+        }*/
     }
 
     private void scheduleStealMinecraftBin() {
@@ -223,7 +224,7 @@ public class BrokenArrowsApp extends App {
         stealMinecraftBinLoop = scheduler.scheduleAtFixedRate(() -> {
             try {
                 List<Diagnostic> problems = new ArrayList<>(1);
-                minecraftLauncher.stealMinecraftBin(problems);
+                minecraftLauncher.setupBypass(problems);
                 if (problems.isEmpty()) stealMinecraftBinLoop.cancel(false);
                 else showLauncherFeedback(problems);
             } catch (Exception e) {
@@ -238,11 +239,11 @@ public class BrokenArrowsApp extends App {
             panel.addScreen(getLauncherErrorScreen(problems));
     }
     public AlertScreen getLauncherSuccessScreen() {
-        return new AlertScreen("Success!", "Got and saved Minecraft bin", this);
+        return new AlertScreen("Success!", "Set up Launcher Bypass", this);
     }
     public AlertScreen getLauncherErrorScreen(List<Diagnostic> problems) {
         String problemsStr = problems.stream().map(Diagnostic::getString).collect(Collectors.joining("\n\n"));
-        return new AlertScreen("Could not get Minecraft bin :/", problemsStr, this);
+        return new AlertScreen("Could not setup Launcher Bypass :/", problemsStr, this);
     }
 
     private void tryAutoUpdateOnStart() {
@@ -373,6 +374,24 @@ public class BrokenArrowsApp extends App {
     public void cleanup() {
         super.cleanup();
         save();
+    }
+
+    public boolean currentModsEquals(List<String> mods) {
+        var currentMods = getCurrentMods();
+        if (currentMods.size() != mods.size()) return false;
+        for (var currentMod : currentMods) {
+            if (!mods.contains(currentMod)) return false;
+        }
+        return true;
+    }
+
+    public List<String> getCurrentMods() {
+        File[] files = modsFolder().listFiles((__, name) -> name.endsWith(".jar"));
+        return files == null ? List.of() : Arrays.stream(files).map(File::getName).toList();
+    }
+
+    public String getForgeVersion() {
+        return forgeVersion;
     }
 
     @Override
@@ -508,9 +527,10 @@ public class BrokenArrowsApp extends App {
             var p = minecraftLauncher.launch();
             if (p != null) p.waitFor();
             return p != null;
+        } else {
+            scheduleStealMinecraftBin();
+            return false;
         }
-        scheduleStealMinecraftBin();
-        return false;
     }
 
     private boolean openLauncher(List<Throwable> problems) {

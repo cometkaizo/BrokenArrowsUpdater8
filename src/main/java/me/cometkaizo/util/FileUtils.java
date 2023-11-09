@@ -7,8 +7,11 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 
+@SuppressWarnings("unused")
 public class FileUtils {
 
     public static File promptDir(File defaultPath, Component parent) {
@@ -68,5 +71,13 @@ public class FileUtils {
             result = new File(result, child);
         }
         return result;
+    }
+
+    public static String readStr(File file) {
+        try {
+            return Files.readString(file.toPath());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
