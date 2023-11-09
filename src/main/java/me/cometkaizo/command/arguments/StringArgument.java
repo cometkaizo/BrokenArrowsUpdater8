@@ -8,8 +8,8 @@ public class StringArgument extends Argument {
     public StringArgument(String name) {
         super(name);
     }
-    public StringArgument(String name, Predicate<Object> requirement) {
-        super(name, requirement);
+    public StringArgument(String name, Predicate<String> requirement) {
+        super(name, o -> requirement.test((String) o));
     }
 
     @Override

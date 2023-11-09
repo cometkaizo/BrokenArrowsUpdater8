@@ -10,8 +10,8 @@ public class IntArgument extends Argument {
     public IntArgument(String name) {
         super(name);
     }
-    public IntArgument(String name, Predicate<Object> requirement) {
-        super(name, requirement);
+    public IntArgument(String name, Predicate<Integer> requirement) {
+        super(name, o -> requirement.test((Integer) o));
     }
 
     @Override

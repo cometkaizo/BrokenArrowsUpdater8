@@ -6,8 +6,8 @@ public class DoubleArgument extends Argument {
     public DoubleArgument(String name) {
         super(name);
     }
-    public DoubleArgument(String name, Predicate<Object> requirement) {
-        super(name, requirement);
+    public DoubleArgument(String name, Predicate<Double> requirement) {
+        super(name, o -> requirement.test((Double) o));
     }
 
     @Override

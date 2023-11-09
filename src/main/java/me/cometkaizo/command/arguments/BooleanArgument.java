@@ -6,8 +6,8 @@ public class BooleanArgument extends Argument {
     public BooleanArgument(String name) {
         super(name);
     }
-    public BooleanArgument(String name, Predicate<Object> requirement) {
-        super(name, requirement);
+    public BooleanArgument(String name, Predicate<Boolean> requirement) {
+        super(name, o -> requirement.test((Boolean) o));
     }
 
     @Override

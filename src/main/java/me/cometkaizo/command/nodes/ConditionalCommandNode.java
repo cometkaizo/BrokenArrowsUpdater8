@@ -4,19 +4,19 @@ import me.cometkaizo.util.StringUtils;
 
 import java.util.function.Supplier;
 
-class ConditionalCommandNode extends SoftCommandNode {
+public class ConditionalCommandNode extends CommandNode {
 
     protected final Supplier<Boolean> condition;
     protected final String name;
 
-    public ConditionalCommandNode(ConditionalCommandNodeBuilder builder) {
+    public ConditionalCommandNode(Builder builder) {
         super(builder);
         this.condition = builder.condition;
         this.name = builder.name;
     }
 
     @Override
-    protected boolean accepts() {
+    protected boolean matchImpl(CommandContext context) {
         return condition.get();
     }
 
@@ -24,13 +24,32 @@ class ConditionalCommandNode extends SoftCommandNode {
     public String toString() {
         return StringUtils.format("""
                 ConditionalCommandNode{
-                    condition: {},
-                    level: {}
-                }""", condition, level);
+                    condition: {}
+                }""", condition);
     }
 
     @Override
     public String toPrettyString() {
         return name;
+    }
+
+    public static class Builder extends CommandNode.Builder {
+
+        protected final Supplier<Boolean> condition;
+        protected final String name;
+
+        public Builder(Supplier<Boolean> condition) {
+            this(condition, "CONDITIONAL");
+        }
+
+        public Builder(Supplier<Boolean> condition, String name) {
+            this.condition = condition;
+            this.name = name;
+        }
+
+        @Override
+        public ConditionalCommandNode build() {
+            return new ConditionalCommandNode(this);
+        }
     }
 }

@@ -5,8 +5,6 @@ import me.cometkaizo.brokenarrows.command.ExitCommand;
 import me.cometkaizo.brokenarrows.command.TestCommand;
 import me.cometkaizo.brokenarrows.screen.*;
 import me.cometkaizo.command.CommandGroup;
-import me.cometkaizo.command.CommandSyntaxException;
-import me.cometkaizo.command.UnknownCommandException;
 import me.cometkaizo.io.data.DataTypes;
 import me.cometkaizo.launcher.app.App;
 import me.cometkaizo.launcher.driver.ExceptionManager;
@@ -23,8 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -35,8 +33,8 @@ public class BrokenArrowsApp extends App {
     public static final String DATA_FOLDER_NAME = "BrokenArrows";
 
     private final CommandGroup commandGroup = new CommandGroup(
-            ExitCommand::new,
-            TestCommand::new
+            ExitCommand.COMMAND,
+            TestCommand.COMMAND
     );
     protected Properties properties;
     protected String version, artifactId;
@@ -364,9 +362,10 @@ public class BrokenArrowsApp extends App {
 
     public void parseInput(String input) {
         try {
-            commandGroup.execute(input);
-        } catch (CommandSyntaxException | UnknownCommandException e) {
-            log(e.getMessage());
+            var problems = commandGroup.execute(input);
+            problems.forEach(p -> log(p.getString()));
+        } catch (Exception e) {
+            err(e);
         }
     }
 
